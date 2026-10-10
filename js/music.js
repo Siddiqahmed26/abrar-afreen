@@ -11,11 +11,13 @@
     var audio = new Audio();
     audio.loop = true;
     audio.volume = 0.6;
-    audio.preload = "auto";
+    // nothing downloads until prefetch(): the envelope's bundle gets the network first
+    audio.preload = "none";
     var failed = false;
     audio.addEventListener("error", function () { failed = true; onFail(); });
     audio.src = src;
     return {
+      prefetch: function () { audio.preload = "auto"; audio.load(); },
       play: function () {
         if (failed) return Promise.reject(new Error("missing"));
         return audio.play();
@@ -144,6 +146,8 @@
     };
     current = src ? FileMusic(src, fallback) : (flute = Flute());
     return {
+      // start downloading the track once the opening screen is up
+      prefetch: function () { if (current.prefetch) current.prefetch(); },
       play: function () { wanted = true; return current.play().catch(function (e) { if (current !== flute) { fallback(); return; } throw e; }); },
       pause: function () { wanted = false; current.pause(); },
     };

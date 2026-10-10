@@ -1,6 +1,10 @@
 /* =========================================================
    Wedding invitation — styles
    ========================================================= */
+/* Fonts the envelope needs at once are served from this site and preloaded */
+@font-face { font-family: "Cinzel"; font-style: normal; font-weight: 600; font-display: swap; src: url("../assets/fonts/Cinzel-600.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url("../assets/fonts/CormorantGaramond-400-italic.woff2") format("woff2"); }
+
 :root {
   --col: 520px;                 /* phone-width column on desktop */
   --rose: #7a2b43;              /* headings: the card's maroon */
@@ -66,7 +70,7 @@ button { font: inherit; color: inherit; }
   background-color: var(--env);
   background-image:
     var(--env-pattern, none),
-    radial-gradient(120% 80% at 25% 15%, #e7bcbc 0%, #d4a1a3 45%, #bf8588 100%);
+    radial-gradient(120% 80% at 25% 15%, #f7f3ed 0%, #ede7df 45%, #e0d7cb 100%);
   background-size: 104px 104px, cover;
 }
 .env-paper { position: absolute; inset: 0; }
@@ -147,12 +151,13 @@ button { font: inherit; color: inherit; }
 }
 .seal svg { width: 100%; height: 100%; }
 .seal-text {
-  font-family: var(--script);
+  font-family: var(--caps);
+  font-weight: 600;
   font-size: 19px;
-  fill: #6e4c12;
-  fill-opacity: .85;
+  fill: #5a3d0c;
+  fill-opacity: .9;
 }
-.seal-mono { font-size: 34px; }
+.seal-mono { font-size: 25px; letter-spacing: 1px; }
 .seal:focus-visible { outline: 2px solid #fff; outline-offset: 6px; border-radius: 50%; }
 @keyframes sealPulse {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
@@ -931,8 +936,12 @@ html.lenis, html.lenis body { height: auto; }
   transition: opacity .7s ease;
 }
 .envelope.has-gl .env-gl { opacity: 1; }
+/* While the 3D envelope loads (html.gl-early is set before the first paint,
+   .gl-pending once the bundle runs): a plain ivory card, no CSS envelope */
+html.gl-early .envelope:not(.gl-failed) .env-paper,
 .envelope.gl-pending .env-paper,
 .envelope.has-gl .env-paper { background: #eee9e3; }
+html.gl-early .envelope:not(.gl-failed) :is(.env-pocket, .env-flap, .env-shadow, .seal, .env-foot, .env-glow, .env-rays),
 .envelope.gl-pending :is(.env-pocket, .env-flap, .env-shadow, .seal, .env-foot, .env-glow, .env-rays),
 .envelope.has-gl :is(.env-pocket, .env-flap, .env-shadow, .seal, .env-foot, .env-glow, .env-rays) { display: none; }
 .envelope.is-flashed { background: transparent; pointer-events: none; }

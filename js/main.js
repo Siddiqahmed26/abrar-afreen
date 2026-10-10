@@ -273,6 +273,8 @@
     document.body.classList.add("is-open");
     $("#envelope").classList.add("is-flashed");
     musicBtn.classList.add("is-visible");
+    // a tap before the hero was built: build it now, behind the white flash
+    if (!heroBuilt) makeHero();
     if (hero3d) { hero3d.setActive(true); hero3d.intro(); }
     if (scroller) scroller.start();
   }
@@ -282,6 +284,8 @@
     if (env.classList.contains("is-opening") || env.classList.contains("gl-pending")) return;
     env.classList.add("is-opening");
     setMusic(true);
+    // never build the hero scene in the middle of the opening: it would stall a frame
+    if (!heroBuilt) clearTimeout(heroTimer);
 
     if (glEnv) {
       glEnv.open().then(function () { glEnv.destroy(); env.remove(); });
@@ -580,20 +584,32 @@
 
   // WebGL scenes and GSAP choreography when available; CSS/SVG versions otherwise
   var useGL = !!(window.GL && GL.available);
+  if (!useGL) document.documentElement.classList.remove("gl-early");
   var hero3d = null, scroller = null, glEnv = null;
-  if (useGL) {
-    try {
-      hero3d = GL.createHero($("#heroArt"), { touch: isTouch });
-      hero3d.setActive(false);
-      $("#heroArt").classList.add("is-gl");
-    } catch (err) { hero3d = null; }
+
+  // The hero scene is built after the envelope is on screen, so the envelope
+  // never waits behind it. The scroll choreography waits for it and the fonts.
+  var heroDone, heroTimer = null, heroBuilt = false;
+  var heroReady = new Promise(function (resolve) { heroDone = resolve; });
+  function makeHero() {
+    if (heroBuilt) return;
+    heroBuilt = true;
+    clearTimeout(heroTimer);
+    if (useGL) {
+      try {
+        hero3d = GL.createHero($("#heroArt"), { touch: isTouch });
+        hero3d.setActive(false);
+        $("#heroArt").classList.add("is-gl");
+      } catch (err) { hero3d = null; }
+    }
+    if (!hero3d) { $("#heroArt").innerHTML = ART.heroScene(); sparkles(); }
+    heroDone();
   }
-  if (!hero3d) { $("#heroArt").innerHTML = ART.heroScene(); sparkles(); }
 
   // Split text and measure scroll positions only once the web fonts are in
   var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   var timeout = new Promise(function (r) { setTimeout(r, 2500); });
-  Promise.race([fontsReady, timeout]).then(function () {
+  Promise.all([Promise.race([fontsReady, timeout]), heroReady]).then(function () {
     if (useGL) {
       try {
         scroller = GL.initScroll({
@@ -606,6 +622,8 @@
       } catch (err) { scroller = null; }
     }
     if (!scroller) { reveals(); scrollFx(); }
+    // the hero can be built after the opening (see openEnvelope); start scrolling then
+    if (scroller && document.body.classList.contains("is-open")) scroller.start();
     window.__invite = { scroller: scroller, hero3d: hero3d };
     // compile the hero's shaders now, while the envelope is on screen, so the
     // opening never stalls on the first hero frame
@@ -618,8 +636,24 @@
   if (useGL) {
     envelope.classList.add("gl-pending");
     GL.createEnvelope($(".env-box"), { onTap: openEnvelope, onFlash: revealSite, reduceMotion: reduceMotion, seal: sealLabel, touch: isTouch })
-      .then(function (e) { glEnv = e; envelope.classList.add("has-gl"); envelope.classList.remove("gl-pending"); })
-      .catch(function () { envelope.classList.remove("gl-pending"); });
+      .then(function (e) {
+        glEnv = e;
+        envelope.classList.add("has-gl");
+        envelope.classList.remove("gl-pending");
+        music.prefetch();
+        // after the envelope has faded in, so its first second stays perfectly smooth
+        heroTimer = setTimeout(makeHero, 700);
+      })
+      .catch(function () {
+        // the 3D envelope could not start: show the CSS envelope instead
+        envelope.classList.remove("gl-pending");
+        envelope.classList.add("gl-failed");
+        document.documentElement.classList.remove("gl-early");
+        makeHero();
+      });
+  } else {
+    music.prefetch();
+    makeHero();
   }
   envelope.addEventListener("click", openEnvelope);
   $("#seal").addEventListener("keydown", function (e) {
