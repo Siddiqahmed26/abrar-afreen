@@ -10,34 +10,46 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Abrar &amp; Afreen · Dawat-E-Valima">
   <meta property="og:description" content="Thursday, 17 December 2026 · Dinner 8:00 PM onwards · Shams Convention Centre, Bengaluru. Tap to open the invitation.">
-  <meta property="og:url" content="https://siddiqahmed26.github.io/abrar-afreen/">
-  <meta property="og:image" content="https://siddiqahmed26.github.io/abrar-afreen/assets/share.jpg">
+  <meta property="og:url" content="https://abrar-afreen.pages.dev/">
+  <meta property="og:image" content="https://abrar-afreen.pages.dev/assets/share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="preload" href="assets/app.js" as="script">
-  <link rel="preload" href="assets/fonts/Cinzel-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/CormorantGaramond-400-italic.woff2" as="font" type="font/woff2" crossorigin>
   <script>
-    // Before the first paint: if this browser can draw WebGL, the 3D envelope
-    // is on its way, so the page opens on a calm ivory card rather than the
-    // CSS fallback envelope, which would otherwise flash while the bundle loads.
+    // Runs before anything else on the page.
+    // 1. If this browser can draw WebGL, the 3D envelope is on its way: mark the
+    //    page so the CSS fallback envelope never flashes while the bundle loads.
+    // 2. Pick the still of the envelope that matches this screen's shape and
+    //    start downloading it first, so the envelope is on screen at once.
     (function () {
+      var d = document.documentElement, gl = null;
       try {
         var c = document.createElement("canvas");
-        var gl = c.getContext("webgl2") || c.getContext("webgl");
+        gl = c.getContext("webgl2") || c.getContext("webgl");
         if (gl) {
-          document.documentElement.classList.add("gl-early");
+          d.classList.add("gl-early");
           var lose = gl.getExtension("WEBGL_lose_context");
           if (lose) lose.loseContext();
         }
       } catch (e) {}
+      if (!gl) return;
+      if (/[?&]poster\b/.test(location.search)) { d.classList.add("poster-mode"); return; }
+      // screen shapes (width / height x 100); keep in sync with scripts/posters.js
+      var shapes = [42, 45, 47, 50, 56, 63, 72, 82];
+      var a = Math.min(innerWidth, 520) / innerHeight * 100, best = shapes[0];
+      for (var i = 1; i < shapes.length; i++) if (Math.abs(shapes[i] - a) < Math.abs(best - a)) best = shapes[i];
+      var src = "assets/poster/env-" + best + ".webp";
+      var l = document.createElement("link");
+      l.rel = "preload"; l.as = "image"; l.href = src; l.setAttribute("fetchpriority", "high");
+      document.head.appendChild(l);
+      window.__poster = src;
     })();
   </script>
+  <!-- the still above gets the network first; the bundle and the seal's fonts follow -->
+  <link rel="preload" href="assets/app.js" as="script" fetchpriority="low">
+  <link rel="preload" href="assets/fonts/Cinzel.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
+  <link rel="preload" href="assets/fonts/CormorantGaramond-Italic.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%237a2b43' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.2 0 3.7 1.3 5.2 3.1 1.5-1.8 3-3.1 5.2-3.1 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Pinyon+Script&family=Great+Vibes&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="is-locked">
@@ -46,6 +58,14 @@
   <div id="envelope" class="envelope" aria-label="Wedding invitation envelope">
    <div class="env-box">
     <div class="env-paper"></div>
+    <!-- A still of the 3D envelope, picked for this screen's shape. It shows from the
+         very first paint; the live 3D envelope fades in over it, identical, once ready. -->
+    <img class="env-poster" id="envPoster" alt="" decoding="async" fetchpriority="high">
+    <script>
+      if (window.__poster) document.getElementById("envPoster").src = window.__poster;
+      // a tap before the scripts are in is remembered and opens the envelope once ready
+      if (window.__poster) document.getElementById("envelope").addEventListener("click", function () { window.__tapQueued = true; }, { once: true });
+    </script>
     <div class="env-shadow"><i></i></div>
     <div class="env-pocket"></div>
     <div class="env-glow"></div>

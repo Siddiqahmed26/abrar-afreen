@@ -281,7 +281,13 @@
 
   function openEnvelope() {
     var env = $("#envelope");
-    if (env.classList.contains("is-opening") || env.classList.contains("gl-pending")) return;
+    if (env.classList.contains("is-opening")) return;
+    if (env.classList.contains("gl-pending")) {
+      // still preparing: start the music inside this tap, open as soon as it is ready
+      window.__tapQueued = true;
+      setMusic(true);
+      return;
+    }
     env.classList.add("is-opening");
     setMusic(true);
     // never build the hero scene in the middle of the opening: it would stall a frame
@@ -633,13 +639,32 @@
   countdown();
 
   var envelope = $("#envelope");
+  var posterMode = document.documentElement.classList.contains("poster-mode");
+  // The still of the envelope goes on screen before any 3D work starts, so the
+  // first thing a guest sees is the finished envelope, not a blank card.
+  function posterShown() {
+    var img = $("#envPoster");
+    if (!img || !img.getAttribute("src")) return Promise.resolve();
+    var ready = img.decode ? img.decode().catch(function () {}) : new Promise(function (r) { img.onload = img.onerror = r; });
+    var limit = new Promise(function (r) { setTimeout(r, 3000); });
+    return Promise.race([ready, limit]).then(function () {
+      return new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+    });
+  }
+
   if (useGL) {
     envelope.classList.add("gl-pending");
-    GL.createEnvelope($(".env-box"), { onTap: openEnvelope, onFlash: revealSite, reduceMotion: reduceMotion, seal: sealLabel, touch: isTouch })
+    posterShown()
+      .then(function () {
+        return GL.createEnvelope($(".env-box"), { onTap: openEnvelope, onFlash: revealSite, reduceMotion: reduceMotion, seal: sealLabel, touch: isTouch });
+      })
       .then(function (e) {
         glEnv = e;
         envelope.classList.add("has-gl");
         envelope.classList.remove("gl-pending");
+        if (posterMode) { e.freeze(0); window.__posterReady = true; return; }
+        // a tap that came early opens the envelope once its first frame is drawn
+        if (window.__tapQueued) { e.firstFrame.then(openEnvelope); return; }
         music.prefetch();
         // after the envelope has faded in, so its first second stays perfectly smooth
         heroTimer = setTimeout(makeHero, 700);
