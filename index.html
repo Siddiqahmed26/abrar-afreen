@@ -61,10 +61,11 @@
     <!-- A still of the 3D envelope, picked for this screen's shape. It shows from the
          very first paint; the live 3D envelope fades in over it, identical, once ready. -->
     <img class="env-poster" id="envPoster" alt="" decoding="async" fetchpriority="high">
+    <div class="seal-wake" aria-hidden="true"></div>
     <script>
       if (window.__poster) document.getElementById("envPoster").src = window.__poster;
       // a tap before the scripts are in is remembered and opens the envelope once ready
-      if (window.__poster) document.getElementById("envelope").addEventListener("click", function () { window.__tapQueued = true; }, { once: true });
+      if (window.__poster) document.getElementById("envelope").addEventListener("click", function () { window.__tapQueued = true; this.classList.add("is-waking"); }, { once: true });
     </script>
     <div class="env-shadow"><i></i></div>
     <div class="env-pocket"></div>

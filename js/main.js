@@ -273,6 +273,9 @@
   function revealSite() {
     performance.mark("open:flash");
     setOpening(false);
+    // normal case: everything was prepared before the opening, so reveal at once
+    if (siteIsReady) { showSite(); return; }
+    // safety net only (e.g. the 3D envelope failed): hold the flash until ready
     var cap = new Promise(function (r) { setTimeout(r, 4000); });
     return Promise.race([prepareSite(), cap]).then(showSite);
   }
@@ -285,40 +288,118 @@
     musicBtn.classList.add("is-visible");
     if (hero3d) { hero3d.setActive(true); hero3d.intro(); }
     if (scroller) scroller.start();
-    autoAdvance();
+    // once the names are written, the page glides on by itself
+    Tour.start(6500);
   }
 
-  /* After the opening, guests sometimes wait, unsure whether to scroll. The cue
-     says so plainly, tapping it scrolls on, and if nobody has touched the page
-     once the names are written, it glides gently into the welcome text. */
-  var advanced = false;
-  function scrollOn() {
-    if (advanced) return;
-    advanced = true;
-    var target = $("#intro");
-    var lenis = scroller && scroller.lenis;
-    if (lenis) lenis.scrollTo(target, { duration: 4.2, easing: function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; } });
-    else target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
-  }
-  function autoAdvance() {
-    var stop = function () { advanced = true; cleanup(); };
-    var events = ["wheel", "touchstart", "keydown"];
-    function cleanup() { events.forEach(function (e) { window.removeEventListener(e, stop); }); }
-    events.forEach(function (e) { window.addEventListener(e, stop, { passive: true, once: true }); });
-    setTimeout(function () {
-      cleanup();
-      if (!advanced && window.scrollY < 40) scrollOn();
-    }, 6500);
-  }
-  $("#scrollCue").addEventListener("click", function () { advanced = false; scrollOn(); });
+  /* =========================================================
+     Guided scroll
+     Guests often don't realise the invitation continues below. So once the
+     names are written, the page glides on by itself, section by section, and
+     rests on each long enough to read it, like a slideshow. Any touch, wheel or
+     key press hands control to the guest; after a few quiet seconds the tour
+     carries on from wherever they are. At "Scratch to Reveal" it waits for the
+     heart to be scratched (or moves on after a while).
+     ========================================================= */
+  var Tour = (function () {
+    // [section, seconds to rest there once arrived]
+    var plan = [["#intro", 4.5], ["#scratch", 0], ["#countdown", 4.5], ["#program", 4.5], ["#venue", 6], ["#gifts", 3.5], ["#closing", 0]];
+    var timer = null, idleTimer = null, gliding = false, running = false, finished = false;
+    var SCRATCH_WAIT = 15000, IDLE_RESUME = 7000;
+    var ease = function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+
+    function stops() {
+      return plan.map(function (p) { return { el: $(p[0]), rest: p[1], id: p[0] }; })
+        .filter(function (p) { return p.el && p.el.offsetHeight > 0; });
+    }
+    // short sections are centred on screen; tall ones start just below the top
+    function targetY(el) {
+      var top = el.getBoundingClientRect().top + window.scrollY, h = el.offsetHeight, vh = window.innerHeight;
+      if (el.id === "intro") return top;
+      var y = h < vh ? top - (vh - h) / 2 : top - vh * 0.04;
+      var max = document.documentElement.scrollHeight - vh;
+      return Math.max(0, Math.min(max, y));
+    }
+    function lenis() { return scroller && scroller.lenis; }
+    function glide(y, done) {
+      gliding = true;
+      var dist = Math.abs(y - window.scrollY);
+      var dur = Math.min(4.2, Math.max(1.6, dist / window.innerHeight * 1.5));
+      var finish = function () { if (!gliding) return; gliding = false; done(); };
+      var L = lenis();
+      if (L) L.scrollTo(y, { duration: dur, easing: ease, force: true, onComplete: finish });
+      else { window.scrollTo({ top: y, behavior: reduceMotion ? "auto" : "smooth" }); setTimeout(finish, dur * 1000); }
+    }
+    function next() {
+      clearTimeout(timer);
+      if (!running) return;
+      var here = window.scrollY + 40;
+      var list = stops(), stop = null;
+      for (var i = 0; i < list.length; i++) if (targetY(list[i].el) > here) { stop = list[i]; break; }
+      if (!stop) { running = false; finished = true; return; }
+      glide(targetY(stop.el), function () { arrive(stop); });
+    }
+    function arrive(stop) {
+      if (!running) return;
+      if (stop.id === "#scratch" && !stop.el.classList.contains("is-revealed")) {
+        // wait for the scratch; go on by itself if nobody scratches
+        var waited = 0;
+        timer = setInterval(function () {
+          waited += 500;
+          if (!running) { clearInterval(timer); return; }
+          if (stop.el.classList.contains("is-revealed")) { clearInterval(timer); timer = setTimeout(next, 4000); }
+          else if (waited >= SCRATCH_WAIT) { clearInterval(timer); next(); }
+        }, 500);
+        return;
+      }
+      if (stop.rest) timer = setTimeout(next, stop.rest * 1000);
+      else { running = false; finished = true; }
+    }
+    function pause() {
+      clearTimeout(timer); clearInterval(timer);
+      if (gliding) {
+        gliding = false;
+        var L = lenis();
+        if (L) { L.stop(); L.start(); }
+      }
+      running = false;
+      // pick the tour up again once the guest has been still for a while
+      clearTimeout(idleTimer);
+      if (!finished) idleTimer = setTimeout(resume, IDLE_RESUME);
+    }
+    function resume() {
+      if (running) return;
+      if (finished || document.body.classList.contains("sheet-open")) {
+        if (!finished) idleTimer = setTimeout(resume, IDLE_RESUME);
+        return;
+      }
+      running = true;
+      next();
+    }
+    function start(delay) {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(function () { if (!running && window.scrollY < 40) resume(); }, delay || 0);
+    }
+    ["wheel", "touchstart", "keydown"].forEach(function (e) {
+      window.addEventListener(e, function () { if (document.body.classList.contains("is-open")) pause(); }, { passive: true });
+    });
+    return { start: start, go: function () { finished = false; clearTimeout(idleTimer); running = true; next(); } };
+  })();
+  // the cue button starts the tour straight away (its own tap counts as a touch, so go after it)
+  $("#scrollCue").addEventListener("click", function () { setTimeout(Tour.go, 0); });
 
   function openEnvelope() {
     var env = $("#envelope");
     if (env.classList.contains("is-opening")) return;
-    if (env.classList.contains("gl-pending")) {
-      // still preparing: start the music inside this tap, open as soon as it is ready
+    // The opening plays only once everything behind it is prepared, so it runs from
+    // the tap to the reveal in one unbroken flow. A tap before that lights the seal
+    // straight away (a CSS glow, smooth even while the page is busy) and the opening
+    // follows the moment the site is ready.
+    if (env.classList.contains("gl-pending") || (glEnv && !siteIsReady)) {
       window.__tapQueued = true;
+      env.classList.add("is-waking");
       setMusic(true);
+      if (glEnv) prepareSite().then(function () { glEnv.firstFrame.then(openEnvelope); });
       return;
     }
     env.classList.add("is-opening");
@@ -674,7 +755,7 @@
   var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   var fontsOrTimeout = Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 2500); })]);
 
-  var siteReady = null, prepTimer = null;
+  var siteReady = null, prepTimer = null, siteIsReady = false;
   function prepareSite() {
     clearTimeout(prepTimer);
     if (siteReady) return siteReady;
@@ -684,7 +765,7 @@
       .then(function () { return fontsOrTimeout; })
       .then(function () { return step(function () { performance.mark("site:scroll"); makeScroll(); }); })
       .then(function () { return step(function () { performance.mark("site:flowers"); if (useGL) { try { GL.mountPeonies(); } catch (e) { /* decorative */ } } }); })
-      .then(function () { performance.mark("site:ready"); })
+      .then(function () { siteIsReady = true; performance.mark("site:ready"); })
       .catch(function () { /* the site still opens */ });
     return siteReady;
   }
@@ -716,11 +797,15 @@
         envelope.classList.add("has-gl");
         envelope.classList.remove("gl-pending");
         if (posterMode) { e.freeze(0); e.firstFrame.then(function () { window.__posterReady = true; }); return; }
-        // a tap that came early opens the envelope once its first frame is drawn
-        if (window.__tapQueued) { e.firstFrame.then(openEnvelope); return; }
+        // a tap that came early: prepare everything now, then open (see openEnvelope)
+        if (window.__tapQueued) {
+          envelope.classList.add("is-waking");
+          prepareSite().then(function () { e.firstFrame.then(openEnvelope); });
+          return;
+        }
         music.prefetch();
-        // after the envelope has faded in, so its first second stays perfectly smooth
-        prepTimer = setTimeout(prepareSite, 700);
+        // shortly after the envelope has faded in, so its first moments stay smooth
+        prepTimer = setTimeout(prepareSite, 300);
       })
       .catch(function () {
         // the 3D envelope could not start: show the CSS envelope instead
