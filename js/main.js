@@ -277,7 +277,32 @@
     if (!heroBuilt) makeHero();
     if (hero3d) { hero3d.setActive(true); hero3d.intro(); }
     if (scroller) scroller.start();
+    autoAdvance();
   }
+
+  /* After the opening, guests sometimes wait, unsure whether to scroll. The cue
+     says so plainly, tapping it scrolls on, and if nobody has touched the page
+     once the names are written, it glides gently into the welcome text. */
+  var advanced = false;
+  function scrollOn() {
+    if (advanced) return;
+    advanced = true;
+    var target = $("#intro");
+    var lenis = scroller && scroller.lenis;
+    if (lenis) lenis.scrollTo(target, { duration: 4.2, easing: function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; } });
+    else target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  function autoAdvance() {
+    var stop = function () { advanced = true; cleanup(); };
+    var events = ["wheel", "touchstart", "keydown"];
+    function cleanup() { events.forEach(function (e) { window.removeEventListener(e, stop); }); }
+    events.forEach(function (e) { window.addEventListener(e, stop, { passive: true, once: true }); });
+    setTimeout(function () {
+      cleanup();
+      if (!advanced && window.scrollY < 40) scrollOn();
+    }, 6500);
+  }
+  $("#scrollCue").addEventListener("click", function () { advanced = false; scrollOn(); });
 
   function openEnvelope() {
     var env = $("#envelope");

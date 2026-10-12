@@ -11,12 +11,12 @@ window.INVITE = {
     groom: {
       name: "Abrar Ahmed",
       initial: "A",
-      lines: ["B.E., Software Engineer"],
+      lines: [],
     },
     bride: {
       name: "Afreen Bokhari",
       initial: "A",
-      lines: ["B.E., Software Engineer"],
+      lines: [],
     },
     // Used in the browser tab and the closing note
     shortNames: "Abrar & Afreen",
