@@ -267,14 +267,22 @@
      Envelope opening
      ========================================================= */
   // shows the site once the envelope's light burst covers the screen
+  // Called at the peak of the envelope's white flash. Any set-up still pending runs
+  // now, hidden behind the white, and the flash holds until it is done (at most
+  // a few seconds), so the hero arrives fully prepared and moves smoothly.
   function revealSite() {
+    performance.mark("open:flash");
+    setOpening(false);
+    var cap = new Promise(function (r) { setTimeout(r, 4000); });
+    return Promise.race([prepareSite(), cap]).then(showSite);
+  }
+  function showSite() {
+    performance.mark("open:reveal");
     window.scrollTo(0, 0);
     document.body.classList.remove("is-locked");
     document.body.classList.add("is-open");
     $("#envelope").classList.add("is-flashed");
     musicBtn.classList.add("is-visible");
-    // a tap before the hero was built: build it now, behind the white flash
-    if (!heroBuilt) makeHero();
     if (hero3d) { hero3d.setActive(true); hero3d.intro(); }
     if (scroller) scroller.start();
     autoAdvance();
@@ -315,8 +323,9 @@
     }
     env.classList.add("is-opening");
     setMusic(true);
-    // never build the hero scene in the middle of the opening: it would stall a frame
-    if (!heroBuilt) clearTimeout(heroTimer);
+    // nothing else may run while the envelope opens: pending set-up waits for the flash
+    setOpening(true);
+    performance.mark("open:tap");
 
     if (glEnv) {
       glEnv.open().then(function () { glEnv.destroy(); env.remove(); });
@@ -620,12 +629,21 @@
 
   // The hero scene is built after the envelope is on screen, so the envelope
   // never waits behind it. The scroll choreography waits for it and the fonts.
-  var heroDone, heroTimer = null, heroBuilt = false;
-  var heroReady = new Promise(function (resolve) { heroDone = resolve; });
+  /* ---------- Background set-up, kept out of the opening ----------
+     The hero scene, its shaders, the scroll effects and the painted flowers are
+     prepared in small steps while the envelope rests. A step never starts while
+     the envelope is opening: from the tap to the white flash only the envelope
+     runs, so its animation stays smooth. Anything left over runs behind the flash. */
+  var opening = false, calmWaiters = [];
+  function setOpening(on) {
+    opening = on;
+    if (!on) calmWaiters.splice(0).forEach(function (r) { r(); });
+  }
+  function whenCalm() { return opening ? new Promise(function (r) { calmWaiters.push(r); }) : Promise.resolve(); }
+  function nextFrame() { return new Promise(function (r) { requestAnimationFrame(function () { setTimeout(r, 0); }); }); }
+  function step(fn) { return whenCalm().then(nextFrame).then(whenCalm).then(fn); }
+
   function makeHero() {
-    if (heroBuilt) return;
-    heroBuilt = true;
-    clearTimeout(heroTimer);
     if (useGL) {
       try {
         hero3d = GL.createHero($("#heroArt"), { touch: isTouch });
@@ -634,13 +652,10 @@
       } catch (err) { hero3d = null; }
     }
     if (!hero3d) { $("#heroArt").innerHTML = ART.heroScene(); sparkles(); }
-    heroDone();
+    // only if the flash gave up waiting: the site is already showing
+    if (hero3d && document.body.classList.contains("is-open")) { hero3d.setActive(true); hero3d.intro(); }
   }
-
-  // Split text and measure scroll positions only once the web fonts are in
-  var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-  var timeout = new Promise(function (r) { setTimeout(r, 2500); });
-  Promise.all([Promise.race([fontsReady, timeout]), heroReady]).then(function () {
+  function makeScroll() {
     if (useGL) {
       try {
         scroller = GL.initScroll({
@@ -649,17 +664,30 @@
           touch: isTouch,
           onLight: function (on) { musicBtn.classList.toggle("on-light", on); },
         });
-        GL.mountPeonies();
       } catch (err) { scroller = null; }
     }
     if (!scroller) { reveals(); scrollFx(); }
-    // the hero can be built after the opening (see openEnvelope); start scrolling then
     if (scroller && document.body.classList.contains("is-open")) scroller.start();
     window.__invite = { scroller: scroller, hero3d: hero3d };
-    // compile the hero's shaders now, while the envelope is on screen, so the
-    // opening never stalls on the first hero frame
-    if (hero3d) hero3d.warmup();
-  });
+  }
+  // web fonts in before text is split and scroll positions are measured
+  var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+  var fontsOrTimeout = Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 2500); })]);
+
+  var siteReady = null, prepTimer = null;
+  function prepareSite() {
+    clearTimeout(prepTimer);
+    if (siteReady) return siteReady;
+    siteReady = step(function () { performance.mark("site:hero"); makeHero(); })
+      // compile the hero's shaders and draw it once, so its first visible frame is instant
+      .then(function () { return step(function () { performance.mark("site:warmup"); return hero3d ? hero3d.warmup() : null; }); })
+      .then(function () { return fontsOrTimeout; })
+      .then(function () { return step(function () { performance.mark("site:scroll"); makeScroll(); }); })
+      .then(function () { return step(function () { performance.mark("site:flowers"); if (useGL) { try { GL.mountPeonies(); } catch (e) { /* decorative */ } } }); })
+      .then(function () { performance.mark("site:ready"); })
+      .catch(function () { /* the site still opens */ });
+    return siteReady;
+  }
   scratchCard();
   countdown();
 
@@ -681,29 +709,29 @@
     envelope.classList.add("gl-pending");
     posterShown()
       .then(function () {
-        return GL.createEnvelope($(".env-box"), { onTap: openEnvelope, onFlash: revealSite, reduceMotion: reduceMotion, seal: sealLabel, touch: isTouch });
+        return GL.createEnvelope($(".env-box"), { onTap: openEnvelope, onFlash: revealSite, reduceMotion: reduceMotion, seal: sealLabel, touch: isTouch, grain: 0 });
       })
       .then(function (e) {
         glEnv = e;
         envelope.classList.add("has-gl");
         envelope.classList.remove("gl-pending");
-        if (posterMode) { e.freeze(0); window.__posterReady = true; return; }
+        if (posterMode) { e.freeze(0); e.firstFrame.then(function () { window.__posterReady = true; }); return; }
         // a tap that came early opens the envelope once its first frame is drawn
         if (window.__tapQueued) { e.firstFrame.then(openEnvelope); return; }
         music.prefetch();
         // after the envelope has faded in, so its first second stays perfectly smooth
-        heroTimer = setTimeout(makeHero, 700);
+        prepTimer = setTimeout(prepareSite, 700);
       })
       .catch(function () {
         // the 3D envelope could not start: show the CSS envelope instead
         envelope.classList.remove("gl-pending");
         envelope.classList.add("gl-failed");
         document.documentElement.classList.remove("gl-early");
-        makeHero();
+        prepareSite();
       });
   } else {
     music.prefetch();
-    makeHero();
+    prepareSite();
   }
   envelope.addEventListener("click", openEnvelope);
   $("#seal").addEventListener("keydown", function (e) {
