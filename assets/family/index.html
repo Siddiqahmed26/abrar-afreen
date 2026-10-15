@@ -5,197 +5,162 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!-- every path on this page resolves from the site root -->
   <base href="../../">
-  <meta name="theme-color" content="#f6efe2">
-  <title>Abrar &amp; Afreen · Dawat-E-Valima</title>
-  <meta name="description" content="With the blessings of Allah, you and your family are invited to the Dawat-E-Valima of Abrar Ahmed with Afreen Bokhari.">
+  <meta name="theme-color" content="#f3e7d2">
+  <title>Abrar &amp; Afreen · Wedding Invitation</title>
+  <meta name="description" content="With the blessings of Allah, you and your family are invited to the wedding celebrations of Abrar Ahmed with Afreen Bokhari.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Abrar &amp; Afreen · Dawat-E-Valima">
-  <meta property="og:description" content="Thursday, 17 December 2026 · Dinner 8:00 PM onwards · Shams Convention Centre, Bengaluru. Tap to open the invitation.">
+  <meta property="og:title" content="Abrar &amp; Afreen · Wedding Invitation">
+  <meta property="og:description" content="Haldi &amp; Shukrana · Nikah · Dawat-E-Valima · 15 &amp; 17 December 2026, Bengaluru. Tap to open the invitation.">
   <meta property="og:url" content="https://abrar-afreen.pages.dev/family">
-  <meta property="og:image" content="https://abrar-afreen.pages.dev/assets/share.jpg">
+  <meta property="og:image" content="https://abrar-afreen.pages.dev/assets/family/share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script>
-    // Same start-up as the main page: mark WebGL support before the first paint and
-    // preload the still of the envelope that matches this screen's shape.
-    (function () {
-      var d = document.documentElement, gl = null;
-      try {
-        var c = document.createElement("canvas");
-        gl = c.getContext("webgl2") || c.getContext("webgl");
-        if (gl) {
-          d.classList.add("gl-early");
-          var lose = gl.getExtension("WEBGL_lose_context");
-          if (lose) lose.loseContext();
-        }
-      } catch (e) {}
-      if (!gl) return;
-      var shapes = [42, 45, 47, 50, 56, 63, 72, 82];
-      var a = Math.min(innerWidth, 520) / innerHeight * 100, best = shapes[0];
-      for (var i = 1; i < shapes.length; i++) if (Math.abs(shapes[i] - a) < Math.abs(best - a)) best = shapes[i];
-      var src = "assets/poster/env-" + best + ".webp";
-      var l = document.createElement("link");
-      l.rel = "preload"; l.as = "image"; l.href = src; l.setAttribute("fetchpriority", "high");
-      document.head.appendChild(l);
-      window.__poster = src;
-    })();
-  </script>
-  <link rel="preload" href="assets/app.js" as="script" fetchpriority="low">
-  <link rel="preload" href="assets/fonts/Cinzel.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
-  <link rel="preload" href="assets/fonts/CormorantGaramond-Italic.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
+  <!-- the first scene arrives before anything else -->
+  <link rel="preload" href="assets/family/scenes/title.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/fonts/PinyonScript.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/Amiri.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b8892f' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.2 0 3.7 1.3 5.2 3.1 1.5-1.8 3-3.1 5.2-3.1 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="assets/family/family.css">
 </head>
-<body class="is-locked fam">
+<body>
 
-  <!-- ============ Envelope (same as the main invitation) ============ -->
-  <div id="envelope" class="envelope" aria-label="Wedding invitation envelope">
-   <div class="env-box">
-    <div class="env-paper"></div>
-    <img class="env-poster" id="envPoster" alt="" decoding="async" fetchpriority="high">
-    <div class="seal-wake" aria-hidden="true"></div>
-    <script>
-      if (window.__poster) document.getElementById("envPoster").src = window.__poster;
-      if (window.__poster) document.getElementById("envelope").addEventListener("click", function () { window.__tapQueued = true; this.classList.add("is-waking"); }, { once: true });
-    </script>
-    <div class="env-shadow"><i></i></div>
-    <div class="env-pocket"></div>
-    <div class="env-glow"></div>
-    <div class="env-rays"></div>
-    <div class="env-flap">
-      <div class="env-flap-face env-flap-front"><div class="env-flap-paper"></div></div>
-      <div class="env-flap-face env-flap-back"></div>
+  <main class="stage" id="stage">
+    <!-- the picture frame keeps the artwork's 9:16 shape; text is placed in its coordinates -->
+    <div class="frame" id="frame">
+
+      <!-- 1 · Wedding Invitation -->
+      <section class="scene" data-bg="title" data-time="7">
+        <div class="txt" style="--top:27%">
+          <p class="ar ar-l" lang="ar" dir="rtl">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+          <h1 class="script write xl">Wedding</h1>
+          <h1 class="script write xl">Invitation</h1>
+          <p class="names fade">Abrar <span>&amp;</span> Afreen</p>
+        </div>
+      </section>
+
+      <!-- 2 · Qur'an 78:8 -->
+      <section class="scene" data-bg="verse" data-time="7">
+        <div class="txt" style="--top:25%">
+          <p class="ar ar-xl" lang="ar" dir="rtl">وَخَلَقْنَاكُمْ أَزْوَاجًا</p>
+          <p class="quote fade">“ And We created you in pairs ”</p>
+          <p class="ref fade">Qur’an 78 : 8</p>
+          <h2 class="script write lg">Abrar &amp; Afreen</h2>
+        </div>
+      </section>
+
+      <!-- 3 · The groom's family -->
+      <section class="scene" data-bg="parents" data-time="11">
+        <div class="txt narrow" style="--top:27.5%">
+          <p class="ar ar-m" lang="ar" dir="rtl">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+          <p class="caps fade">In the name of Allah, the Most<br>Beneficent, the Most Merciful</p>
+          <p class="bold fade">Mr. Mustaq Ahmed &amp;<br>Mrs. Nazhath Unnisa</p>
+          <p class="italic fade">solicit your blessings &amp; request your gracious presence on the auspicious occasion of the wedding ceremony of their beloved son</p>
+          <h2 class="script write md">Abrar Ahmed</h2>
+          <p class="small fade">Paternal grandson of<br><b>Late Janab Abdul Kareem Saheb</b></p>
+          <p class="small fade">Maternal grandson of<br><b>Late Janab Abdul Khayyum Saheb</b></p>
+        </div>
+      </section>
+
+      <!-- 4 · The bride's family -->
+      <section class="scene" data-bg="parents" data-time="10">
+        <div class="txt narrow" style="--top:31%">
+          <p class="script write sm">with</p>
+          <h2 class="script write md">Afreen Bokhari</h2>
+          <p class="bold fade">D/o Mr. Syed Ilyas Bokhari &amp;<br>Mrs. Syeda Fathima Mubeen</p>
+          <p class="small fade">Paternal granddaughter of<br><b>Late Syed Shafiulla Bokhari Saheb</b></p>
+          <p class="small fade">Maternal granddaughter of<br><b>Late Syed Hidayathulla Bokhari Saheb</b></p>
+        </div>
+      </section>
+
+      <!-- 5 · Alhamdulillah -->
+      <section class="scene" data-bg="heart" data-time="8">
+        <div class="txt heart" style="--top:21%">
+          <p class="caps2 fade">Together in this Life<br>by Allah’s grace,</p>
+          <p class="ar ar-l" lang="ar" dir="rtl">اَلْحَمْدُ لِلّٰهِ</p>
+          <p class="caps2 fade">And forever in Jannah</p>
+          <p class="ar ar-l" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
+        </div>
+      </section>
+
+      <!-- 6 · Haldi & Shukrana -->
+      <section class="scene" data-bg="haldi" data-time="10">
+        <div class="txt" style="--top:16.5%">
+          <h2 class="script write lg haldi">Haldi &amp; Shukrana</h2>
+          <span class="flourish fade" aria-hidden="true"></span>
+          <p class="italic fade">Insha Allah,</p>
+          <p class="bold big fade">On Tuesday, 15th December 2026</p>
+          <p class="bold fade">Dinner : 8:00 PM onwards</p>
+          <p class="script venue fade">Venue</p>
+          <p class="place fade">A.M.C. Fortune Mahal</p>
+          <p class="addr fade">#36, Jayamahal Main Road, Opp. Fun World,<br>Next to S.B.I. Bank, J.C. Nagar, Bengaluru – 560 006</p>
+          <p class="acts fade"><a class="act" data-map="amc" target="_blank" rel="noopener">Directions</a><a class="act" data-cal="haldi" target="_blank" rel="noopener">Save the Date</a></p>
+        </div>
+      </section>
+
+      <!-- 7 · Nikah -->
+      <section class="scene" data-bg="nikah" data-time="10">
+        <div class="txt" style="--top:16%">
+          <p class="ar ar-m" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
+          <h2 class="script write lg">Nikah</h2>
+          <span class="flourish fade" aria-hidden="true"></span>
+          <p class="bold big fade">On Thursday, 17th December 2026</p>
+          <p class="bold fade">Nikah : 11:00 AM<br>Lunch : 12:30 PM onwards</p>
+          <p class="script venue fade">Venue</p>
+          <p class="place fade">A.M.C. Fortune Mahal</p>
+          <p class="addr fade">#36, Jayamahal Main Road, Opp. Fun World,<br>Next to S.B.I. Bank, J.C. Nagar, Bengaluru – 560 006</p>
+          <p class="acts fade"><a class="act" data-map="amc" target="_blank" rel="noopener">Directions</a><a class="act" data-cal="nikah" target="_blank" rel="noopener">Save the Date</a></p>
+        </div>
+      </section>
+
+      <!-- 8 · Dawat-E-Valima -->
+      <section class="scene" data-bg="walima" data-time="10">
+        <div class="txt" style="--top:16.5%">
+          <p class="ar ar-m" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
+          <h2 class="script write lg">Dawat-E-Valima</h2>
+          <span class="flourish fade" aria-hidden="true"></span>
+          <p class="bold big fade">On Thursday, 17th December 2026</p>
+          <p class="bold fade">Dinner : 8:00 PM onwards</p>
+          <p class="script venue fade">Venue</p>
+          <p class="place fade">Shams Convention Centre</p>
+          <p class="addr fade">#67, Haines Road, Sulthangunta,<br>Shivaji Nagar, Bengaluru – 560 001</p>
+          <p class="acts fade"><a class="act" data-map="shams" target="_blank" rel="noopener">Directions</a><a class="act" data-cal="valima" target="_blank" rel="noopener">Save the Date</a></p>
+        </div>
+      </section>
+
+      <!-- 9 · Thank you -->
+      <section class="scene" data-bg="thanks" data-time="0">
+        <div class="txt narrow" style="--top:23%">
+          <h2 class="script write xl">Thank You</h2>
+          <p class="bold fade">Your presence, prayers and blessings<br>will add joy to our celebration.</p>
+          <p class="small fade">With best compliments from :<br><b>Relatives and Friends</b></p>
+          <p class="acts fade"><button class="act" id="replay" type="button">Watch again</button></p>
+        </div>
+      </section>
+
+      <div class="sparkles" aria-hidden="true"></div>
     </div>
-    <button id="seal" class="seal" type="button" aria-label="Tap to open the invitation">
-      <svg viewBox="0 0 120 120" aria-hidden="true">
-        <defs>
-          <radialGradient id="sealGold" cx="38%" cy="32%" r="75%">
-            <stop offset="0" stop-color="#fff1b8"/><stop offset=".35" stop-color="#e7bf5c"/>
-            <stop offset=".75" stop-color="#b98a2c"/><stop offset="1" stop-color="#7d5a17"/>
-          </radialGradient>
-          <radialGradient id="sealInner" cx="60%" cy="65%" r="70%">
-            <stop offset="0" stop-color="#f3d27a"/><stop offset=".7" stop-color="#c9992f"/><stop offset="1" stop-color="#a77a1f"/>
-          </radialGradient>
-        </defs>
-        <path fill="url(#sealGold)" d="M60 4c7 0 9 5 15 6s11-2 15 3 1 10 5 15 9 5 10 12-4 9-4 15 5 10 2 16-9 5-12 10-1 11-7 14-10-1-16 1-9 8-16 8-9-5-15-6-11 2-15-3-1-10-5-15-9-5-10-12 4-9 4-15-5-10-2-16 9-5 12-10 1-11 7-14 10 1 16-1 9-8 16-8z"/>
-        <circle cx="60" cy="60" r="37" fill="url(#sealInner)" stroke="#8a6418" stroke-opacity=".45" stroke-width="1.5"/>
-        <circle cx="60" cy="60" r="31" fill="none" stroke="#fff3c4" stroke-opacity=".55" stroke-width=".8"/>
-        <text x="60" y="68" text-anchor="middle" class="seal-text seal-mono">A &amp; A</text>
+
+    <div class="haze" aria-hidden="true"></div>
+    <div class="bars" id="bars" aria-hidden="true"></div>
+
+    <!-- before the first tap: the scene waits behind a soft haze (music needs a tap) -->
+    <button class="opener" id="opener" type="button" aria-label="Open the invitation">
+      <span class="op-ar" lang="ar" dir="rtl">بِسْمِ اللّٰهِ</span>
+      <span class="op-title">Abrar &amp; Afreen</span>
+      <span class="op-tap">Tap to open the invitation</span>
+    </button>
+
+    <button id="music" class="music" type="button" aria-label="Toggle music" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="m-speaker" d="M4 9h3l5-4v14l-5-4H4z"/>
+        <path class="m-waves" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"/>
+        <path class="m-mute" d="M16 9l5 6M21 9l-5 6"/>
       </svg>
     </button>
-   </div>
-  </div>
-
-  <!-- Music toggle -->
-  <button id="music" class="music" type="button" aria-label="Toggle music" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path class="m-speaker" d="M4 9h3l5-4v14l-5-4H4z"/>
-      <path class="m-waves" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"/>
-      <path class="m-mute" d="M16 9l5 6M21 9l-5 6"/>
-    </svg>
-  </button>
-
-  <!-- ============ Scenes: a story that plays by itself ============ -->
-  <main class="story" id="story" aria-live="polite">
-    <div class="story-bars" id="bars" aria-hidden="true"></div>
-    <div class="story-glow" aria-hidden="true"></div>
-
-    <!-- 1 · Bismillah -->
-    <section class="scene" data-time="6.5" data-couple="stand">
-      <div class="sc-content">
-        <p class="ar ar-bismillah" lang="ar" dir="rtl">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
-        <p class="sc-small">In the name of Allah, the Most Beneficent, the Most Merciful</p>
-        <h1 class="sc-title">Dawat-E-Valima</h1>
-        <p class="sc-names">Abrar <span>&amp;</span> Afreen</p>
-        <p class="sc-date">17 · 12 · 2026</p>
-      </div>
-    </section>
-
-    <!-- 2 · Qur'an 78:8 -->
-    <section class="scene" data-time="7" data-couple="stand">
-      <div class="sc-content">
-        <p class="ar ar-verse" lang="ar" dir="rtl">وَخَلَقْنَاكُمْ أَزْوَاجًا</p>
-        <p class="sc-quote">“And We created you in pairs”</p>
-        <p class="sc-ref">Qur’an 78 : 8</p>
-        <span class="sc-rule" aria-hidden="true"></span>
-        <p class="sc-names sc-names-lg">Abrar <span>&amp;</span> Afreen</p>
-      </div>
-    </section>
-
-    <!-- 3 · The groom's family -->
-    <section class="scene scene-text" data-time="10">
-      <div class="sc-content">
-        <p class="ar ar-small" lang="ar" dir="rtl">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
-        <p class="sc-hosts">Mr. Mustaq Ahmed &amp; Mrs. Nazhath Unnisa</p>
-        <p class="sc-body">solicit the pleasure of your company, with family, at the Dawat-E-Valima of their beloved son</p>
-        <h2 class="sc-person">Abrar Ahmed</h2>
-        <p class="sc-lineage">Paternal grandson of<br><b>Late Janab Abdul Kareem Saheb</b></p>
-        <p class="sc-lineage">Maternal grandson of<br><b>Late Janab Abdul Khayyum Saheb</b></p>
-      </div>
-    </section>
-
-    <!-- 4 · The bride's family -->
-    <section class="scene scene-text" data-time="10">
-      <div class="sc-content">
-        <p class="sc-with">with</p>
-        <h2 class="sc-person">Afreen Bokhari</h2>
-        <p class="sc-body">Daughter of</p>
-        <p class="sc-hosts">Mr. Syed Ilyas Bokhari &amp; Mrs. Syeda Fathima Mubeen</p>
-        <p class="sc-lineage">Paternal granddaughter of<br><b>Late Syed Shafiulla Bokhari Saheb</b></p>
-        <p class="sc-lineage">Maternal granddaughter of<br><b>Late Syed Hidayathulla Bokhari Saheb</b></p>
-      </div>
-    </section>
-
-    <!-- 5 · Alhamdulillah -->
-    <section class="scene scene-heart" data-time="7.5" data-couple="stand">
-      <div class="sc-heart" data-art="heart" aria-hidden="true"></div>
-      <div class="sc-content">
-        <p class="sc-caps">Together in this life<br>by Allah’s grace,</p>
-        <p class="ar ar-dua" lang="ar" dir="rtl">اَلْحَمْدُ لِلّٰهِ</p>
-        <p class="sc-caps">and forever in Jannah</p>
-        <p class="ar ar-dua" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
-      </div>
-    </section>
-
-    <!-- 6 · The Valima -->
-    <section class="scene scene-event" data-time="14">
-      <div class="sc-content">
-        <p class="ar ar-small" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
-        <h2 class="sc-event">Dawat-E-Valima</h2>
-        <span class="sc-rule" aria-hidden="true"></span>
-        <p class="sc-when">Thursday, 17th December 2026</p>
-        <p class="sc-hijri">8th Rajab 1448 Hijri</p>
-        <p class="sc-time">Dinner · 8:00 PM onwards</p>
-        <p class="sc-venue-label">Venue</p>
-        <p class="sc-venue">Shams Convention Centre</p>
-        <p class="sc-address">#67, Haines Road, Sulthangunta, Shivaji Nagar, Bengaluru – 560 001</p>
-        <p class="sc-count" id="famCount"></p>
-        <div class="sc-actions">
-          <a class="sc-btn" id="famMap" target="_blank" rel="noopener">Directions</a>
-          <a class="sc-btn sc-btn-line" id="famCal" target="_blank" rel="noopener">Save the Date</a>
-        </div>
-        <a class="sc-ics" id="famIcs" download="Dawat-E-Valima.ics">Apple &amp; other calendars</a>
-      </div>
-    </section>
-
-    <!-- 7 · Thank you -->
-    <section class="scene scene-thanks" data-time="0" data-couple="stand">
-      <div class="sc-content">
-        <h2 class="sc-thanks">Thank You</h2>
-        <p class="sc-body">Your presence, prayers and blessings are the greatest gift of all.</p>
-        <p class="sc-caps">Bless the couple on<br>their auspicious day</p>
-        <p class="sc-small">With best compliments from relatives &amp; friends</p>
-        <button class="sc-btn sc-btn-line sc-replay" id="famReplay" type="button">Watch again</button>
-      </div>
-    </section>
-
-    <div class="story-hint" id="hint" aria-hidden="true"><span>Tap to continue</span></div>
   </main>
 
   <script src="js/music.js"></script>
-  <script src="assets/app.js"></script>
   <script src="assets/family/family.js"></script>
 </body>
 </html>
