@@ -58,10 +58,13 @@
     sc._v = v; sc._cam = cam; sc._path = CAM[clip];
     setCam(sc, 0);
   });
+  // The lettering layer is laid out OVER (25%) larger than the frame and only ever scaled down:
+  // phones draw a moving layer once and then stretch it, so scaling up would blur the text.
+  var OVER = 1.25;
   function setCam(sc, p) {
     var a = sc._path[1], b = sc._path[2];
     var s = a[0] + (b[0] - a[0]) * p, x = a[1] + (b[1] - a[1]) * p, y = a[2] + (b[2] - a[2]) * p;
-    sc._cam.style.transform = "translate(" + (x / 7.2).toFixed(3) + "%," + (y / 12.8).toFixed(3) + "%) scale(" + s.toFixed(5) + ")";
+    sc._cam.style.transform = "translate(" + (x / 7.2).toFixed(3) + "cqw," + (y / 12.8).toFixed(3) + "cqh) scale(" + (s / OVER).toFixed(5) + ")";
   }
   // the next clip loads while the current one plays
   function warm(i) { var sc = scenes[i]; if (sc && sc._v.preload !== "auto") { sc._v.preload = "auto"; sc._v.load(); } }
@@ -134,8 +137,11 @@
       var at = (parseFloat(el.getAttribute("data-at")) || 0) * 1000;
       if (calm) at = 0;
       if (el.classList.contains("b")) {
-        play(el, [{ opacity: 0, filter: "blur(9px)" }, { opacity: 1, filter: "blur(0)" }],
-          { duration: calm ? 200 : 550, delay: at, easing: "ease-out", fill: "both" });
+        el.style.opacity = "";
+        var f = play(el, [{ opacity: 0, filter: "blur(9px)" }, { opacity: 1, filter: "blur(0)" }],
+          { duration: calm ? 200 : 550, delay: at, easing: "ease-out", fill: "backwards" });
+        // once in focus the line keeps no filter at all (a leftover filter makes phones draw text soft)
+        f.onfinish = function () { el.style.opacity = "1"; };
       } else {
         var d = calm ? 200 : (parseFloat(el.getAttribute("data-d")) || 1) * 1000;
         var from = el.classList.contains("wr") ? "inset(-30% -8% -30% 100%)" : "inset(-30% 100% -30% -8%)";
