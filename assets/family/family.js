@@ -17,10 +17,15 @@
     img.decoding = "async";
     img.setAttribute("data-src", "assets/family/scenes/" + sc.getAttribute("data-bg") + ".webp");
     if (i === 0) { img.fetchPriority = "high"; img.src = img.getAttribute("data-src"); }
-    sc.insertBefore(img, sc.firstChild);
+    // the picture and its calligraphy share one layer, so the camera push moves them together
+    var art = document.createElement("div");
+    art.className = "art";
+    art.appendChild(img);
+    $$(".cal", sc).forEach(function (c) { art.appendChild(c); });
+    sc.insertBefore(art, sc.firstChild);
   });
   function loadRest() { $$(".bg").forEach(function (img) { if (!img.getAttribute("src")) img.src = img.getAttribute("data-src"); }); }
-  scenes[0].classList.add("is-on");
+  scenes[0].classList.add("idle");
   if (document.readyState === "complete") setTimeout(loadRest, 300);
   else window.addEventListener("load", function () { setTimeout(loadRest, 300); });
 
@@ -99,7 +104,10 @@
     stage.classList.add("playing");
     setMusic(true);
     loadRest();
+    scenes[0].classList.remove("idle");
     show(0, true);
+    // once faded, the opener leaves the page entirely
+    setTimeout(function () { $("#opener").classList.add("gone"); }, 1300);
   }
   $("#opener").addEventListener("click", function (e) { e.stopPropagation(); open(); });
 

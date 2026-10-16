@@ -19,7 +19,7 @@
   <!-- the first scene arrives before anything else -->
   <link rel="preload" href="assets/family/scenes/title.webp" as="image" fetchpriority="high">
   <link rel="preload" href="assets/fonts/PinyonScript.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/Amiri.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/family/cal/title.webp" as="image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b8892f' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.2 0 3.7 1.3 5.2 3.1 1.5-1.8 3-3.1 5.2-3.1 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/family/family.css">
 </head>
@@ -29,10 +29,10 @@
     <!-- the picture frame keeps the artwork's 9:16 shape; text is placed in its coordinates -->
     <div class="frame" id="frame">
 
-      <!-- 1 · Wedding Invitation -->
-      <section class="scene" data-bg="title" data-time="7">
-        <div class="txt" style="--top:27%">
-          <p class="ar ar-l" lang="ar" dir="rtl">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+      <!-- 1 · Wedding Invitation (the Arabic is the video's own calligraphy) -->
+      <section class="scene cal-lead" data-bg="title" data-time="8">
+        <img class="cal" src="assets/family/cal/title.webp" alt="بسم الله الرحمن الرحيم" style="--l:20.833%;--t:27.188%;--w:54.167%">
+        <div class="txt" style="--top:35.6%">
           <h1 class="script write xl">Wedding</h1>
           <h1 class="script write xl">Invitation</h1>
           <p class="names fade">Abrar <span>&amp;</span> Afreen</p>
@@ -40,9 +40,9 @@
       </section>
 
       <!-- 2 · Qur'an 78:8 -->
-      <section class="scene" data-bg="verse" data-time="7">
-        <div class="txt" style="--top:25%">
-          <p class="ar ar-xl" lang="ar" dir="rtl">وَخَلَقْنَاكُمْ أَزْوَاجًا</p>
+      <section class="scene cal-lead" data-bg="verse" data-time="8">
+        <img class="cal" src="assets/family/cal/verse.webp" alt="وخلقناكم أزواجا" style="--l:26.667%;--t:21.719%;--w:47.222%">
+        <div class="txt" style="--top:33.6%">
           <p class="quote fade">“ And We created you in pairs ”</p>
           <p class="ref fade">Qur’an 78 : 8</p>
           <h2 class="script write lg">Abrar &amp; Afreen</h2>
@@ -50,9 +50,9 @@
       </section>
 
       <!-- 3 · The groom's family -->
-      <section class="scene" data-bg="parents" data-time="11">
-        <div class="txt narrow" style="--top:27.5%">
-          <p class="ar ar-m" lang="ar" dir="rtl">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+      <section class="scene cal-lead" data-bg="parents" data-time="12">
+        <img class="cal" src="assets/family/cal/parents.webp" alt="بسم الله الرحمن الرحيم" style="--l:29.861%;--t:25.938%;--w:34.722%">
+        <div class="txt narrow" style="--top:34%">
           <p class="caps fade">In the name of Allah, the Most<br>Beneficent, the Most Merciful</p>
           <p class="bold fade">Mr. Mustaq Ahmed &amp;<br>Mrs. Nazhath Unnisa</p>
           <p class="italic fade">solicit your blessings &amp; request your gracious presence on the auspicious occasion of the wedding ceremony of their beloved son</p>
@@ -64,7 +64,7 @@
 
       <!-- 4 · The bride's family -->
       <section class="scene" data-bg="parents" data-time="10">
-        <div class="txt narrow" style="--top:31%">
+        <div class="txt narrow" style="--top:29%">
           <p class="script write sm">with</p>
           <h2 class="script write md">Afreen Bokhari</h2>
           <p class="bold fade">D/o Mr. Syed Ilyas Bokhari &amp;<br>Mrs. Syeda Fathima Mubeen</p>
@@ -73,13 +73,14 @@
         </div>
       </section>
 
-      <!-- 5 · Alhamdulillah -->
+      <!-- 5 · Alhamdulillah: every line sits where the video has it -->
       <section class="scene" data-bg="heart" data-time="8">
-        <div class="txt heart" style="--top:21%">
-          <p class="caps2 fade">Together in this Life<br>by Allah’s grace,</p>
-          <p class="ar ar-l" lang="ar" dir="rtl">اَلْحَمْدُ لِلّٰهِ</p>
-          <p class="caps2 fade">And forever in Jannah</p>
-          <p class="ar ar-l" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
+        <img class="cal late" src="assets/family/cal/hamd.webp" alt="الحمد لله" style="--l:37.778%;--t:24.219%;--w:31.389%;--d:1.4s">
+        <img class="cal late" src="assets/family/cal/insha.webp" alt="إن شاء الله" style="--l:30.556%;--t:37.344%;--w:37.222%;--d:3.4s">
+        <div class="txt abs">
+          <p class="smc fade" style="--y:16.4%">Together in this Life</p>
+          <p class="smc fade" style="--y:20.1%">by Allah’s grace,</p>
+          <p class="smc fade" style="--y:32.6%">And forever in Jannah</p>
         </div>
       </section>
 
@@ -99,9 +100,9 @@
       </section>
 
       <!-- 7 · Nikah -->
-      <section class="scene" data-bg="nikah" data-time="10">
-        <div class="txt" style="--top:16%">
-          <p class="ar ar-m" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
+      <section class="scene cal-lead" data-bg="nikah" data-time="10">
+        <img class="cal" src="assets/family/cal/nikah.webp" alt="إن شاء الله" style="--l:33.333%;--t:19.062%;--w:32.778%">
+        <div class="txt" style="--top:25.4%">
           <h2 class="script write lg">Nikah</h2>
           <span class="flourish fade" aria-hidden="true"></span>
           <p class="bold big fade">On Thursday, 17th December 2026</p>
@@ -115,8 +116,7 @@
 
       <!-- 8 · Dawat-E-Valima -->
       <section class="scene" data-bg="walima" data-time="10">
-        <div class="txt" style="--top:16.5%">
-          <p class="ar ar-m" lang="ar" dir="rtl">إِنْ شَاءَ اللّٰهُ</p>
+        <div class="txt" style="--top:19.5%">
           <h2 class="script write lg">Dawat-E-Valima</h2>
           <span class="flourish fade" aria-hidden="true"></span>
           <p class="bold big fade">On Thursday, 17th December 2026</p>
@@ -144,9 +144,8 @@
     <div class="haze" aria-hidden="true"></div>
     <div class="bars" id="bars" aria-hidden="true"></div>
 
-    <!-- before the first tap: the scene waits behind a soft haze (music needs a tap) -->
+    <!-- before the first tap: the first scene waits, sharp, with a tap prompt (music needs a tap) -->
     <button class="opener" id="opener" type="button" aria-label="Open the invitation">
-      <span class="op-ar" lang="ar" dir="rtl">بِسْمِ اللّٰهِ</span>
       <span class="op-title">Abrar &amp; Afreen</span>
       <span class="op-tap">Tap to open the invitation</span>
     </button>

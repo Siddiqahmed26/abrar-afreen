@@ -3,8 +3,6 @@
 @font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 300 700; font-display: swap; src: url("../fonts/CormorantGaramond.woff2") format("woff2"); }
 @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 300 700; font-display: swap; src: url("../fonts/CormorantGaramond-Italic.woff2") format("woff2"); }
 @font-face { font-family: "Cinzel"; font-weight: 400 900; font-display: swap; src: url("../fonts/Cinzel.woff2") format("woff2"); }
-@font-face { font-family: "Amiri"; font-weight: 400; font-display: swap; src: url("../fonts/Amiri.woff2") format("woff2"); }
-@font-face { font-family: "Amiri"; font-weight: 700; font-display: swap; src: url("../fonts/Amiri-Bold.woff2") format("woff2"); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #efe2c9; }
@@ -30,19 +28,22 @@ body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transpa
 
 .scene { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 1.1s ease, visibility 0s linear 1.1s; }
 .scene.is-on { opacity: 1; visibility: visible; transition: opacity 1.1s ease, visibility 0s; }
-.scene .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 70%; }
+/* before the first tap the opening scene is already there, sharp, without its text */
+.scene.idle { opacity: 1; visibility: visible; transition: none; }
+/* the picture and its calligraphy move together */
+.scene .art { position: absolute; inset: 0; transform-origin: 50% 70%; }
+.scene .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* slow camera push, like the video */
-.scene.is-on .bg { animation: push 12s ease-out forwards; }
+.scene.is-on .art { animation: push 12s ease-out forwards; }
 @keyframes push { from { transform: scale(1); } to { transform: scale(1.06); } }
 
-/* white blur between scenes */
-.haze { position: absolute; inset: 0; z-index: 20; pointer-events: none; background: rgba(250, 247, 240, 0); }
-.stage.turning .haze { animation: haze 1.25s ease-in-out; }
-@keyframes haze {
-  0% { background: rgba(250, 247, 240, 0); backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
-  45% { background: rgba(250, 247, 240, .85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-  100% { background: rgba(250, 247, 240, 0); backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
-}
+/* soft white wash between scenes (a plain fade: nothing is ever blurred) */
+.haze { position: absolute; inset: 0; z-index: 20; pointer-events: none; background: #fbf8f1; opacity: 0; }
+.stage.turning .haze { animation: haze 1.1s ease-in-out; }
+@keyframes haze { 0%, 100% { opacity: 0; } 45% { opacity: .9; } }
+
+/* the video's own Arabic calligraphy, placed exactly where it is in the video */
+.cal { position: absolute; left: var(--l); top: var(--t); width: var(--w); height: auto; display: block; pointer-events: none; }
 
 /* ---------- text, in the picture's own proportions (cqw = 1% of the frame width) ---------- */
 .txt { position: absolute; left: 15%; right: 15%; top: var(--top); z-index: 5; display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--ink); }
@@ -50,10 +51,10 @@ body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transpa
 .txt.heart { left: 27%; right: 27%; }
 .txt > * { margin: 0; }
 
-.ar { font-family: "Amiri", serif; color: var(--ink); line-height: 1.55; }
-.ar-xl { font-size: 8.4cqw; font-weight: 700; }
-.ar-l { font-size: 6.4cqw; font-weight: 700; }
-.ar-m { font-size: 5.2cqw; }
+.txt.abs { inset: 0; display: block; }
+.txt.abs > * { position: absolute; left: 0; right: 0; top: var(--y); }
+/* Cinzel's lower case is small capitals, as in the video */
+.smc { font-family: "Cinzel", serif; font-weight: 700; font-size: 4.25cqw; line-height: 1.2; white-space: nowrap; }
 .script { font-family: "Pinyon Script", cursive; font-weight: 400; line-height: 1.12; color: var(--ink); -webkit-text-stroke: .08cqw currentColor; }
 .script.xl { font-size: 12.2cqw; }
 .script.lg { font-size: 10cqw; }
@@ -99,22 +100,31 @@ body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transpa
   cursor: pointer;
 }
 
-/* ---------- how text arrives (as in the video): script writes, the rest sharpens from a blur ---------- */
+/* ---------- how text arrives (as in the video): script writes in, the rest fades up; never blurred ---------- */
 .scene .write { clip-path: inset(-30% 100% -30% 0); }
-.scene .fade, .scene .ar { opacity: 0; filter: blur(6px); transform: translateY(1.2cqw); }
+.scene .fade { opacity: 0; transform: translateY(1.2cqw); }
+/* Arabic writes in from the right, as it is read */
+.scene .cal { clip-path: inset(-5% 0 -5% 100%); }
 .scene.is-on .write { animation: write 1.7s cubic-bezier(.45,.05,.3,1) forwards; }
-.scene.is-on .fade, .scene.is-on .ar { animation: sharpen 1.1s ease-out forwards; }
+.scene.is-on .fade { animation: rise 1s ease-out forwards; }
+.scene.is-on .cal { animation: write 1.8s cubic-bezier(.45,.05,.3,1) var(--d, .35s) forwards; }
 @keyframes write { to { clip-path: inset(-30% -10% -30% -10%); } }
-@keyframes sharpen { to { opacity: 1; filter: blur(0); transform: none; } }
-.scene.is-on .txt > :nth-child(1) { animation-delay: .5s; }
-.scene.is-on .txt > :nth-child(2) { animation-delay: 1.1s; }
-.scene.is-on .txt > :nth-child(3) { animation-delay: 1.9s; }
-.scene.is-on .txt > :nth-child(4) { animation-delay: 2.5s; }
-.scene.is-on .txt > :nth-child(5) { animation-delay: 3.1s; }
-.scene.is-on .txt > :nth-child(6) { animation-delay: 3.6s; }
-.scene.is-on .txt > :nth-child(7) { animation-delay: 4.1s; }
-.scene.is-on .txt > :nth-child(8) { animation-delay: 4.5s; }
-.scene.is-on .txt > :nth-child(9) { animation-delay: 4.9s; }
+@keyframes rise { to { opacity: 1; transform: none; } }
+.scene { --lead: .5s; }
+.scene.cal-lead { --lead: 1.9s; }
+.scene.is-on .txt > :nth-child(1) { animation-delay: var(--lead); }
+.scene.is-on .txt > :nth-child(2) { animation-delay: calc(var(--lead) + .6s); }
+.scene.is-on .txt > :nth-child(3) { animation-delay: calc(var(--lead) + 1.4s); }
+.scene.is-on .txt > :nth-child(4) { animation-delay: calc(var(--lead) + 2s); }
+.scene.is-on .txt > :nth-child(5) { animation-delay: calc(var(--lead) + 2.6s); }
+.scene.is-on .txt > :nth-child(6) { animation-delay: calc(var(--lead) + 3.1s); }
+.scene.is-on .txt > :nth-child(7) { animation-delay: calc(var(--lead) + 3.6s); }
+.scene.is-on .txt > :nth-child(8) { animation-delay: calc(var(--lead) + 4s); }
+.scene.is-on .txt > :nth-child(9) { animation-delay: calc(var(--lead) + 4.4s); }
+/* the Alhamdulillah scene alternates English and Arabic, as the video does */
+.scene.is-on .txt.abs > :nth-child(1) { animation-delay: .3s; }
+.scene.is-on .txt.abs > :nth-child(2) { animation-delay: .8s; }
+.scene.is-on .txt.abs > :nth-child(3) { animation-delay: 2.7s; }
 
 /* drifting gold sparkles */
 .sparkles { position: absolute; inset: 0; z-index: 6; pointer-events: none; overflow: hidden; }
@@ -149,20 +159,18 @@ body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transpa
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 10px;
   border: 0;
-  padding: 0 24px;
-  background: rgba(251, 247, 238, .72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 0 24px 12vh;
+  background: transparent;
   color: var(--ink);
   cursor: pointer;
   transition: opacity 1.2s ease, visibility 0s linear 1.2s;
 }
 .stage.playing .opener { opacity: 0; visibility: hidden; }
-.op-ar { font: 700 34px "Amiri", serif; }
+.opener.gone { display: none; }
 .op-title { font: 400 clamp(44px, 13vw, 60px) "Pinyon Script", cursive; line-height: 1.1; -webkit-text-stroke: .5px currentColor; }
-.op-tap { margin-top: 18px; font: 600 12px "Cinzel", serif; letter-spacing: .3em; text-transform: uppercase; color: #8a6418; animation: pulse 2s ease-in-out infinite; }
+.op-tap { margin-top: 14px; padding: 10px 18px; border: 1px solid rgba(150, 105, 30, .55); border-radius: 99px; background: rgba(255, 251, 242, .9); font: 600 12px "Cinzel", serif; letter-spacing: .3em; text-transform: uppercase; color: #8a6418; animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .45; } }
 
 .music {
@@ -191,6 +199,6 @@ body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transpa
 .music[aria-pressed="false"] .m-mute { display: inline; }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene.is-on .bg, .sparkles i, .op-tap { animation: none !important; }
-  .scene.is-on .write, .scene.is-on .fade, .scene.is-on .ar { animation-duration: .3s; animation-delay: 0s !important; }
+  .scene.is-on .art, .sparkles i, .op-tap { animation: none !important; }
+  .scene.is-on .write, .scene.is-on .fade, .scene.is-on .cal { animation-duration: .3s; animation-delay: 0s !important; }
 }
