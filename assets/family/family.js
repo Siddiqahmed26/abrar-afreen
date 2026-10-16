@@ -1,7 +1,9 @@
 /*
  * Family invitation: plays the scenes the way the reference video does.
- *  - camera: each scene zooms slowly in or out over its whole length (data-cam="from to"),
- *    with the text riding on the picture;
+ *  - picture: each scene is the video's own footage with its sample text removed, so the
+ *    camera and the characters move exactly as in the video;
+ *  - the text is laid out on the video's frame and follows its camera (CAM, measured from the
+ *    footage: scale and offset at the first and last frame, in 720 x 1280 pixels);
  *  - text: .w writes on from the left, .wr (Arabic) from the right, .b comes into focus;
  *  - between scenes the text wipes away, the picture veils into a soft white flash and the
  *    next one comes out of it.
@@ -12,28 +14,59 @@
   "use strict";
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-  var stage = $("#stage"), frame = $("#frame"), haze = $("#haze"), bars = $("#bars");
+  var stage = $("#stage"), frame = $("#frame"), haze = $("#haze"), bars = $("#bars"), actbar = $("#actbar");
   var scenes = $$(".scene");
   var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- build each scene's camera layer: picture, calligraphy and text together ---------- */
+  /* camera path of each clip: [length in s, [scale, x, y] at the start, [scale, x, y] at the end] */
+  var CAM = {
+    title: [6.567, [1.09989, -35.98, -63.8], [0.96307, 13.25, 23.69]],
+    verse: [5.967, [0.88476, 41.45, 73.7], [1.00908, -3.28, -5.76]],
+    parents: [5.967, [1.05551, -19.99, -35.53], [0.93506, 23.38, 41.56]],
+    heart: [5.9, [0.90003, 35.94, 64.0], [0.99869, 0.38, 0.78]],
+    haldi: [5.9, [1.10291, -37.0, -0.02], [0.9667, 11.96, -0.02]],
+    nikah: [5.867, [1.04848, -17.41, 0.22], [0.92049, 27.57, -0.65]],
+    walima: [5.7, [0.95673, 15.61, 27.79], [1.13144, -47.66, -84.51]],
+    thanks: [6.0, [1.07143, -25.73, 0.17], [0.93676, 22.73, 0.12]],
+  };
+
+  /* ---------- each scene: its footage, and a layer for its lettering that follows the camera ---------- */
   scenes.forEach(function (sc, i) {
-    var art = document.createElement("div");
-    art.className = "art";
-    var img = document.createElement("img");
-    img.className = "bg";
-    img.alt = "";
-    img.decoding = "async";
-    img.setAttribute("data-src", "assets/family/scenes/" + sc.getAttribute("data-bg") + ".webp");
-    if (i === 0) { img.fetchPriority = "high"; img.src = img.getAttribute("data-src"); }
-    art.appendChild(img);
-    Array.prototype.slice.call(sc.children).forEach(function (c) { art.appendChild(c); });
-    sc.appendChild(art);
+    var clip = sc.getAttribute("data-clip");
+    var v = document.createElement("video");
+    v.className = "bg";
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
+    v.setAttribute("playsinline", "");
+    v.setAttribute("webkit-playsinline", "");
+    v.setAttribute("muted", "");
+    v.preload = i === 0 ? "auto" : "none";
+    v.poster = "assets/family/clips/" + clip + ".webp";
+    // H.264 for phones, VP9 for browsers without it; each picks the first it can play
+    ["mp4", "webm"].forEach(function (ext) {
+      var so = document.createElement("source");
+      so.src = "assets/family/clips/" + clip + "." + ext;
+      so.type = "video/" + ext;
+      v.appendChild(so);
+    });
+    var cam = document.createElement("div");
+    cam.className = "cam";
+    Array.prototype.slice.call(sc.children).forEach(function (c) { cam.appendChild(c); });
+    sc.appendChild(v);
+    sc.appendChild(cam);
+    sc._v = v; sc._cam = cam; sc._path = CAM[clip];
+    setCam(sc, 0);
   });
-  function loadRest() { $$(".bg").forEach(function (img) { if (!img.getAttribute("src")) img.src = img.getAttribute("data-src"); }); }
+  function setCam(sc, p) {
+    var a = sc._path[1], b = sc._path[2];
+    var s = a[0] + (b[0] - a[0]) * p, x = a[1] + (b[1] - a[1]) * p, y = a[2] + (b[2] - a[2]) * p;
+    sc._cam.style.transform = "translate(" + (x / 7.2).toFixed(3) + "%," + (y / 12.8).toFixed(3) + "%) scale(" + s.toFixed(5) + ")";
+  }
+  // the next clip loads while the current one plays
+  function warm(i) { var sc = scenes[i]; if (sc && sc._v.preload !== "auto") { sc._v.preload = "auto"; sc._v.load(); } }
+  function loadRest() { warm(1); }
   scenes[0].classList.add("idle");
-  if (document.readyState === "complete") setTimeout(loadRest, 300);
-  else window.addEventListener("load", function () { setTimeout(loadRest, 300); });
 
   /* ---------- maps and calendar ---------- */
   var MAPS = {
@@ -70,14 +103,33 @@
   function play(el, frames, opts) { var a = el.animate(frames, opts); anims.push(a); return a; }
   var WRITE = "cubic-bezier(.3,.1,.5,1)";
 
+  /* the footage plays over the scene's whole length; the lettering follows its camera frame by frame */
+  var camRaf = 0, camSc = null, camT0 = 0, camLen = 0;
+  function follow() {
+    var sc = camSc, v = sc._v, clipLen = sc._path[0];
+    var p = (v.readyState >= 2 && v.currentTime > 0) ? v.currentTime / clipLen
+      : (performance.now() - camT0) / camLen;
+    setCam(sc, Math.max(0, Math.min(1, p)));
+    camRaf = requestAnimationFrame(follow);
+  }
+  function roll(sc, dur) {
+    cancelAnimationFrame(camRaf);
+    scenes.forEach(function (o) { if (o !== sc && !o._v.paused) o._v.pause(); });
+    var v = sc._v, clipLen = sc._path[0];
+    camSc = sc; camT0 = performance.now(); camLen = dur > 0 ? dur : clipLen * 1000;
+    // slower footage for the scenes that stay longer, so the characters keep moving to the end
+    var rate = dur > 0 ? Math.max(0.5, Math.min(1, clipLen * 1000 / dur)) : 1;
+    try { v.currentTime = 0; } catch (e) {}
+    v.playbackRate = rate;
+    if (calm) { setCam(sc, 0); return; }
+    var pr = v.play();
+    if (pr && pr.catch) pr.catch(function () {});
+    follow();
+  }
+
   function enter(sc, dur) {
     stopAll();
-    var cam = (sc.getAttribute("data-cam") || "1 1").split(" ").map(parseFloat);
-    var camTime = (parseFloat(sc.getAttribute("data-camtime")) || dur / 1000 || 7) * 1000;
-    if (!calm) {
-      play($(".art", sc), [{ transform: "scale(" + cam[0] + ")" }, { transform: "scale(" + cam[1] + ")" }],
-        { duration: camTime, easing: "linear", fill: "forwards" });
-    }
+    roll(sc, dur);
     $$(".w, .wr, .b", sc).forEach(function (el) {
       var at = (parseFloat(el.getAttribute("data-at")) || 0) * 1000;
       if (calm) at = 0;
@@ -120,7 +172,7 @@
   /* ---------- the story ---------- */
   bars.innerHTML = scenes.map(function () { return "<i><b></b></i>"; }).join("");
   var barEls = $$("i", bars);
-  var idx = 0, timer = null, raf = 0, startAt = 0, dur = 0, playing = false, swapT = null, leaveT = null;
+  var actT = null, idx = 0, timer = null, raf = 0, startAt = 0, dur = 0, playing = false, swapT = null, leaveT = null;
 
   function paint() {
     barEls.forEach(function (b, i) { b.classList.toggle("done", i < idx); if (i !== idx) b.firstChild.style.width = ""; });
@@ -136,6 +188,13 @@
     dur = (parseFloat(scenes[i].getAttribute("data-time")) || 0) * 1000;
     startAt = performance.now();
     enter(scenes[i], dur);
+    warm(i + 1);
+    // the scene's buttons appear in the bar once its details are in
+    var acts = $(".acts", scenes[i]);
+    actbar.classList.remove("on");
+    clearTimeout(actT);
+    actbar.innerHTML = acts ? acts.innerHTML : "";
+    if (acts) actT = setTimeout(function () { actbar.classList.add("on"); }, (parseFloat(acts.getAttribute("data-at")) || 2) * 1000);
     // the scene's own time includes its exit, so the next one starts at the white peak
     if (dur > 0) timer = setTimeout(function () { show(idx + 1); }, dur);
     paint();
@@ -145,6 +204,7 @@
     clearTimeout(timer); clearTimeout(swapT); clearTimeout(leaveT); cancelAnimationFrame(raf);
     if (immediate) { go(i); return; }
     leave(scenes[idx]);
+    actbar.classList.remove("on");
     leaveT = setTimeout(flash, 120);
     swapT = setTimeout(function () { go(i); }, 120 + SWAP);
   }
@@ -182,9 +242,10 @@
     if (e.key === "ArrowLeft" || e.key === "ArrowUp") show(idx - 1);
   });
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) { clearTimeout(timer); cancelAnimationFrame(raf); anims.forEach(function (a) { a.pause(); }); }
+    if (document.hidden) { clearTimeout(timer); cancelAnimationFrame(raf); cancelAnimationFrame(camRaf); anims.forEach(function (a) { a.pause(); }); scenes[idx]._v.pause(); }
     else if (playing) show(idx, true);
   });
-  $("#replay").addEventListener("click", function () { show(0); });
-  window.__famShow = function (i) { if (!playing) open(); show(i, true); }; // test hook
+  actbar.addEventListener("click", function (e) { e.stopPropagation(); if (e.target.closest("#replay")) show(0); });
+  window.__famShow = function (i) { if (!playing) open(); show(i, true); }; // test hooks
+  window.__famCam = function (p) { cancelAnimationFrame(camRaf); scenes[idx]._v.pause(); setCam(scenes[idx], p); };
 })();
