@@ -1,9 +1,9 @@
 /*
- * Family invitation: plays the scenes the way the reference video does.
- *  - picture: each scene is the video's own footage with its sample text removed, so the
- *    camera and the characters move exactly as in the video;
- *  - the text is laid out on the video's frame and follows its camera (CAM, measured from the
- *    footage: scale and offset at the first and last frame, in 720 x 1280 pixels);
+ * Family invitation: cream-and-gold scenes under Mughal arches (the reference video's own
+ * artwork, with the figures removed and a floral base of roses, lanterns and candles), set to
+ * the wording of the printed card.
+ *  - camera: each scene drifts slowly in or out; picture, calligraphy and text move together;
+ *  - life: rose petals fall, candles flicker, gold dust twinkles;
  *  - text: .w writes on from the left, .wr (Arabic) from the right, .b comes into focus;
  *  - between scenes the text wipes away, the picture veils into a soft white flash and the
  *    next one comes out of it.
@@ -18,47 +18,35 @@
   var scenes = $$(".scene");
   var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* camera path of each clip: [length in s, [scale, x, y] at the start, [scale, x, y] at the end] */
-  var CAM = {
-    title: [6.567, [1.09989, -35.98, -63.8], [0.96307, 13.25, 23.69]],
-    verse: [5.967, [0.88476, 41.45, 73.7], [1.00908, -3.28, -5.76]],
-    parents: [5.967, [1.05551, -19.99, -35.53], [0.93506, 23.38, 41.56]],
-    heart: [5.9, [0.90003, 35.94, 64.0], [0.99869, 0.38, 0.78]],
-    haldi: [5.9, [1.10291, -37.0, -0.02], [0.9667, 11.96, -0.02]],
-    nikah: [5.867, [1.04848, -17.41, 0.22], [0.92049, 27.57, -0.65]],
-    walima: [5.7, [0.95673, 15.61, 27.79], [1.13144, -47.66, -84.51]],
-    thanks: [6.0, [1.07143, -25.73, 0.17], [0.93676, 22.73, 0.12]],
-  };
+  /* camera: [scale at the start, scale at the end]; scenes alternate drifting in and out */
+  var DRIFT = [[1, 1.06], [1.06, 1]];
+  // candle flames in the floral base (percent of the picture), each given a soft flickering glow
+  var FLAMES = [[11.1, 95.8, 1], [25.1, 98.7, .7], [84.5, 93.8, 1.2], [94.5, 95.7, .9]];
 
-  /* ---------- each scene: its footage, and a layer for its lettering that follows the camera ---------- */
+  /* ---------- each scene: picture, glows and lettering on one camera layer ---------- */
   scenes.forEach(function (sc, i) {
-    var clip = sc.getAttribute("data-clip");
-    var v = document.createElement("video");
-    v.className = "bg";
-    v.muted = true;
-    v.defaultMuted = true;
-    v.playsInline = true;
-    v.setAttribute("playsinline", "");
-    v.setAttribute("webkit-playsinline", "");
-    v.setAttribute("muted", "");
-    v.preload = i === 0 ? "auto" : "none";
-    v.poster = "assets/family/clips/" + clip + ".webp";
-    // H.264 for phones, VP9 for browsers without it; each picks the first it can play
-    ["mp4", "webm"].forEach(function (ext) {
-      var so = document.createElement("source");
-      so.src = "assets/family/clips/" + clip + "." + ext;
-      so.type = "video/" + ext;
-      v.appendChild(so);
-    });
     var cam = document.createElement("div");
     cam.className = "cam";
+    var img = document.createElement("img");
+    img.className = "bg";
+    img.alt = "";
+    img.decoding = "async";
+    img.setAttribute("data-src", "assets/family/scenes/" + sc.getAttribute("data-bg") + ".webp");
+    if (i === 0) { img.fetchPriority = "high"; img.src = img.getAttribute("data-src"); }
+    cam.appendChild(img);
+    FLAMES.forEach(function (f, k) {
+      var g = document.createElement("i");
+      g.className = "glow";
+      g.style.cssText = "left:" + f[0] + "%;top:" + f[1] + "%;--s:" + f[2] + ";animation-delay:-" + (k * 0.37).toFixed(2) + "s";
+      cam.appendChild(g);
+    });
     Array.prototype.slice.call(sc.children).forEach(function (c) { cam.appendChild(c); });
-    sc.appendChild(v);
     sc.appendChild(cam);
-    sc._v = v; sc._cam = cam; sc._path = CAM[clip];
+    var d = DRIFT[i % 2];
+    sc._cam = cam; sc._path = [0, [d[0], 360 * (1 - d[0]), 640 * (1 - d[0])], [d[1], 360 * (1 - d[1]), 640 * (1 - d[1])]];
     setCam(sc, 0);
   });
-  // The lettering layer is laid out OVER (25%) larger than the frame and only ever scaled down:
+  // The camera layer is laid out OVER (25%) larger than the frame and only ever scaled down:
   // phones draw a moving layer once and then stretch it, so scaling up would blur the text.
   var OVER = 1.25;
   function setCam(sc, p) {
@@ -66,10 +54,65 @@
     var s = a[0] + (b[0] - a[0]) * p, x = a[1] + (b[1] - a[1]) * p, y = a[2] + (b[2] - a[2]) * p;
     sc._cam.style.transform = "translate(" + (x / 7.2).toFixed(3) + "cqw," + (y / 12.8).toFixed(3) + "cqh) scale(" + (s / OVER).toFixed(5) + ")";
   }
-  // the next clip loads while the current one plays
-  function warm(i) { var sc = scenes[i]; if (sc && sc._v.preload !== "auto") { sc._v.preload = "auto"; sc._v.load(); } }
-  function loadRest() { warm(1); }
+  function loadRest() { $$(".bg").forEach(function (img) { if (!img.getAttribute("src")) img.src = img.getAttribute("data-src"); }); }
   scenes[0].classList.add("idle");
+  if (document.readyState === "complete") setTimeout(loadRest, 300);
+  else window.addEventListener("load", function () { setTimeout(loadRest, 300); });
+
+  /* ---------- falling rose petals and gold dust (one light canvas over all scenes) ---------- */
+  var cv = $("#petals"), cx = cv.getContext("2d"), petals = [], dust = [], W = 0, H = 0, DPR = 1, petalRaf = 0, lastT = 0;
+  var TONES = [["#f6d5d3", "#e9aeb0"], ["#fbeee0", "#ecd3b4"], ["#f3dfa6", "#d8b25c"], ["#f8e1e4", "#dfa3ad"]];
+  function sizeCanvas() {
+    // the canvas sits on the camera layer (between picture and text), which is 1.25x the frame
+    var r = frame.getBoundingClientRect();
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = r.width * OVER; H = r.height * OVER;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  }
+  function petal(top) {
+    var t = TONES[Math.floor(Math.random() * TONES.length)];
+    return { x: Math.random() * W, y: top ? -20 - Math.random() * H * .6 : Math.random() * H, r: (6 + Math.random() * 7) * W / 400,
+      vy: (14 + Math.random() * 16) * H / 800, sway: 18 + Math.random() * 30, ph: Math.random() * 6.3, sp: .6 + Math.random() * .9,
+      rot: Math.random() * 6.3, vr: (Math.random() - .5) * 1.4, flip: Math.random() * 6.3, c: t };
+  }
+  function makeAmbience() {
+    sizeCanvas();
+    petals = []; dust = [];
+    for (var k = 0; k < 16; k++) petals.push(petal(false));
+    for (k = 0; k < 34; k++) dust.push({ x: Math.random(), y: .08 + Math.random() * .8, r: .6 + Math.random() * 1.4, ph: Math.random() * 6.3, sp: .7 + Math.random() * 1.6 });
+  }
+  function drawAmbience(t) {
+    var dt = Math.min(.05, (t - lastT) / 1000 || 0); lastT = t;
+    cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cx.clearRect(0, 0, W, H);
+    dust.forEach(function (d) {
+      var a = Math.max(0, Math.sin(t / 1000 * d.sp + d.ph)); a = a * a;
+      if (a < .02) return;
+      var x = d.x * W, y = d.y * H, r = d.r * W / 400;
+      var g = cx.createRadialGradient(x, y, 0, x, y, r * 4);
+      g.addColorStop(0, "rgba(255,248,220," + (.95 * a) + ")"); g.addColorStop(.35, "rgba(240,200,110," + (.55 * a) + ")"); g.addColorStop(1, "rgba(240,200,110,0)");
+      cx.fillStyle = g; cx.beginPath(); cx.arc(x, y, r * 4, 0, 6.283); cx.fill();
+    });
+    petals.forEach(function (p, k) {
+      p.y += p.vy * dt; p.ph += p.sp * dt; p.rot += p.vr * dt; p.flip += 1.6 * dt;
+      var x = p.x + Math.sin(p.ph) * p.sway;
+      if (p.y > H + 30) petals[k] = petal(true);
+      cx.save(); cx.translate(x, p.y); cx.rotate(p.rot); cx.scale(Math.max(.18, Math.abs(Math.cos(p.flip))), 1);
+      var g = cx.createLinearGradient(-p.r, -p.r, p.r, p.r);
+      g.addColorStop(0, p.c[0]); g.addColorStop(1, p.c[1]);
+      cx.fillStyle = g; cx.globalAlpha = .88;
+      cx.beginPath();
+      cx.moveTo(0, -p.r);
+      cx.bezierCurveTo(p.r * .95, -p.r * .7, p.r * .8, p.r * .75, 0, p.r);
+      cx.bezierCurveTo(-p.r * .8, p.r * .75, -p.r * .95, -p.r * .7, 0, -p.r);
+      cx.fill();
+      cx.restore();
+    });
+    petalRaf = requestAnimationFrame(drawAmbience);
+  }
+  function startAmbience() { if (calm) return; cancelAnimationFrame(petalRaf); lastT = performance.now(); petalRaf = requestAnimationFrame(drawAmbience); }
+  makeAmbience();
+  window.addEventListener("resize", sizeCanvas);
 
   /* ---------- maps and calendar ---------- */
   var MAPS = {
@@ -106,27 +149,16 @@
   function play(el, frames, opts) { var a = el.animate(frames, opts); anims.push(a); return a; }
   var WRITE = "cubic-bezier(.3,.1,.5,1)";
 
-  /* the footage plays over the scene's whole length; the lettering follows its camera frame by frame */
+  /* the camera drifts over the scene's whole length */
   var camRaf = 0, camSc = null, camT0 = 0, camLen = 0;
   function follow() {
-    var sc = camSc, v = sc._v, clipLen = sc._path[0];
-    var p = (v.readyState >= 2 && v.currentTime > 0) ? v.currentTime / clipLen
-      : (performance.now() - camT0) / camLen;
-    setCam(sc, Math.max(0, Math.min(1, p)));
+    setCam(camSc, Math.max(0, Math.min(1, (performance.now() - camT0) / camLen)));
     camRaf = requestAnimationFrame(follow);
   }
   function roll(sc, dur) {
     cancelAnimationFrame(camRaf);
-    scenes.forEach(function (o) { if (o !== sc && !o._v.paused) o._v.pause(); });
-    var v = sc._v, clipLen = sc._path[0];
-    camSc = sc; camT0 = performance.now(); camLen = dur > 0 ? dur : clipLen * 1000;
-    // slower footage for the scenes that stay longer, so the characters keep moving to the end
-    var rate = dur > 0 ? Math.max(0.5, Math.min(1, clipLen * 1000 / dur)) : 1;
-    try { v.currentTime = 0; } catch (e) {}
-    v.playbackRate = rate;
+    camSc = sc; camT0 = performance.now(); camLen = dur > 0 ? dur : 9000;
     if (calm) { setCam(sc, 0); return; }
-    var pr = v.play();
-    if (pr && pr.catch) pr.catch(function () {});
     follow();
   }
 
@@ -193,8 +225,10 @@
     idx = i;
     dur = (parseFloat(scenes[i].getAttribute("data-time")) || 0) * 1000;
     startAt = performance.now();
+    // petals drift between the picture and the lettering of the scene on screen
+    var firstText = scenes[i]._cam.querySelector(".cal, .txt");
+    scenes[i]._cam.insertBefore(cv, firstText);
     enter(scenes[i], dur);
-    warm(i + 1);
     // the scene's buttons appear in the bar once its details are in
     var acts = $(".acts", scenes[i]);
     actbar.classList.remove("on");
@@ -221,6 +255,7 @@
     stage.classList.add("playing");
     setMusic(true);
     loadRest();
+    startAmbience();
     go(0);
     // once faded, the opener leaves the page entirely
     setTimeout(function () { $("#opener").classList.add("gone"); }, 1300);
@@ -248,10 +283,10 @@
     if (e.key === "ArrowLeft" || e.key === "ArrowUp") show(idx - 1);
   });
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) { clearTimeout(timer); cancelAnimationFrame(raf); cancelAnimationFrame(camRaf); anims.forEach(function (a) { a.pause(); }); scenes[idx]._v.pause(); }
-    else if (playing) show(idx, true);
+    if (document.hidden) { clearTimeout(timer); cancelAnimationFrame(raf); cancelAnimationFrame(camRaf); anims.forEach(function (a) { a.pause(); }); cancelAnimationFrame(petalRaf); }
+    else if (playing) { show(idx, true); startAmbience(); }
   });
   actbar.addEventListener("click", function (e) { e.stopPropagation(); if (e.target.closest("#replay")) show(0); });
   window.__famShow = function (i) { if (!playing) open(); show(i, true); }; // test hooks
-  window.__famCam = function (p) { cancelAnimationFrame(camRaf); scenes[idx]._v.pause(); setCam(scenes[idx], p); };
+  window.__famCam = function (p) { cancelAnimationFrame(camRaf); setCam(scenes[idx], p); };
 })();

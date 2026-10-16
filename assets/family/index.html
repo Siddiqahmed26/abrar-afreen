@@ -17,8 +17,7 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <!-- the first scene arrives before anything else -->
-  <link rel="preload" href="assets/family/clips/title.webp" as="image" fetchpriority="high">
-  <link rel="preload" href="assets/family/clips/title.mp4" as="video" type="video/mp4">
+  <link rel="preload" href="assets/family/scenes/title.webp" as="image" fetchpriority="high">
   <link rel="preload" href="assets/fonts/ImperialScript.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/family/cal/title.webp" as="image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b8892f' d='M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.2 0 3.7 1.3 5.2 3.1 1.5-1.8 3-3.1 5.2-3.1 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E">
@@ -26,17 +25,17 @@
 </head>
 <body>
 <!--
-  Every scene plays the reference video's own footage (assets/family/clips/, its sample text
-  removed), so the camera and the characters move exactly as in the video. The text is laid out
-  on the video's frame and follows its camera (family.js). Each line arrives the way the video
-  brings it in: .w writes on from the left, .wr (the Arabic) from the right, .b comes into focus.
+  Every scene is the reference video's own artwork (assets/family/scenes/) with the figures
+  removed and a floral base of roses, lanterns and candles. The camera drifts slowly, petals
+  fall and candles flicker (family.js). Each line arrives the way the video brings it in:
+  .w writes on from the left, .wr (the Arabic) from the right, .b comes into focus.
   data-at is when it starts (seconds into the scene), data-d how long writing takes.
 -->
   <main class="stage" id="stage">
     <div class="frame" id="frame">
 
       <!-- 1 · Wedding Invitation -->
-      <section class="scene" data-clip="title" data-time="6.6">
+      <section class="scene" data-bg="title" data-time="6.6">
         <img class="cal wr" src="assets/family/cal/title.webp" alt="بسم الله الرحمن الرحيم" style="--l:20.833%;--t:27.188%;--w:54.167%" data-at=".1" data-d="2.6">
         <div class="txt" style="--top:35.8%">
           <h1 class="is xl w" data-at=".2" data-d="1">Wedding</h1>
@@ -45,9 +44,9 @@
       </section>
 
       <!-- 2 · Qur'an 78:8 -->
-      <section class="scene" data-clip="verse" data-time="6.6">
+      <section class="scene" data-bg="verse" data-time="6.6">
         <img class="cal wr" src="assets/family/cal/verse.webp" alt="وخلقناكم أزواجا" style="--l:26.667%;--t:21.719%;--w:47.222%" data-at=".1" data-d="3.3">
-        <div class="txt fit" style="--top:34.1%;--k:1.227">
+        <div class="txt fit" style="--top:34.1%;--k:1.309">
           <p class="nc quote w" data-at=".1" data-d="2.6">“ And We created you in pairs ”</p>
           <p class="nc ref w" data-at="2.8" data-d="1.1">Qur’an : 78 : 8</p>
           <h2 class="is lg names w" data-at=".1" data-d="1.3">Abrar &amp; Afreen</h2>
@@ -55,9 +54,9 @@
       </section>
 
       <!-- 3 · The groom's parents -->
-      <section class="scene" data-clip="parents" data-time="8.5">
+      <section class="scene" data-bg="parents" data-time="8.5">
         <img class="cal b" src="assets/family/cal/parents.webp" alt="بسم الله الرحمن الرحيم" style="--l:29.861%;--t:25.938%;--w:34.722%" data-at="0">
-        <div class="txt fit" style="--top:33.4%;--k:1.524">
+        <div class="txt fit" style="--top:33.4%;--k:1.486">
           <p class="cz caps b" data-at="0">In the name of Allah,<br>the Most Beneficent,<br>the Most Merciful</p>
           <p class="tb host b" data-at=".75">Mr. Mustaq Ahmed &amp;<br>Mrs. Nazhath Unnisa</p>
           <p class="nc ask b" data-at="1.5">Solicit your blessings &amp; request<br>your gracious presence on the<br>auspicious occasion of the<br>Wedding Ceremony of<br>their beloved Son</p>
@@ -65,7 +64,7 @@
       </section>
 
       <!-- 4 · The groom -->
-      <section class="scene" data-clip="parents" data-time="7">
+      <section class="scene" data-bg="parents" data-time="7">
         <div class="txt fit" style="--top:36%;--k:1.650">
           <h2 class="is md b" data-at="0">Abrar Ahmed</h2>
           <p class="gp b" data-at=".9"><span class="nc">Paternal grandson of</span><br><b class="tb">Late Janab<br>Abdul Kareem Saheb</b></p>
@@ -74,8 +73,8 @@
       </section>
 
       <!-- 5 · The bride's family -->
-      <section class="scene" data-clip="parents" data-time="8.5">
-        <div class="txt fit" style="--top:31.5%;--k:1.316">
+      <section class="scene" data-bg="parents" data-time="8.5">
+        <div class="txt fit" style="--top:31.5%;--k:1.282">
           <p class="is with b" data-at="0">With</p>
           <h2 class="is md b" data-at=".5">Afreen Bokhari</h2>
           <p class="tb host b" data-at="1.25">D/o Mr. Syed Ilyas Bokhari<br>&amp; Mrs. Syeda Fathima Mubeen</p>
@@ -85,7 +84,7 @@
       </section>
 
       <!-- 5 · Alhamdulillah (every line where the video has it) -->
-      <section class="scene" data-clip="heart" data-time="6.6">
+      <section class="scene" data-bg="heart" data-time="6.6">
         <img class="cal b" src="assets/family/cal/hamd.webp" alt="الحمد لله" style="--l:37.778%;--t:24.219%;--w:31.389%" data-at="1">
         <img class="cal b" src="assets/family/cal/insha.webp" alt="إن شاء الله" style="--l:30.556%;--t:37.344%;--w:37.222%" data-at="2.5">
         <div class="txt abs">
@@ -95,8 +94,8 @@
       </section>
 
       <!-- 6 · Haldi & Shukrana -->
-      <section class="scene" data-clip="haldi" data-time="8.5">
-        <div class="txt fit" style="--top:15.5%;--k:1.189">
+      <section class="scene" data-bg="haldi" data-time="8.5">
+        <div class="txt fit" style="--top:15.5%;--k:1.462">
           <h2 class="is lg b" data-at="0"><span class="gold">Haldi &amp; Shukrana</span></h2>
           <img class="orn b" src="assets/family/cal/orn.webp" alt="" data-at="0">
           <p class="tb date b" data-at="1">Insha Allah, on Tuesday,<br>15th December 2026</p>
@@ -109,9 +108,9 @@
       </section>
 
       <!-- 7 · Nikah -->
-      <section class="scene" data-clip="nikah" data-time="8.5">
+      <section class="scene" data-bg="nikah" data-time="8.5">
         <img class="cal b" src="assets/family/cal/nikah.webp" alt="إن شاء الله" style="--l:33.333%;--t:19.062%;--w:32.778%" data-at="0">
-        <div class="txt fit" style="--top:25.2%;--k:1.105">
+        <div class="txt fit" style="--top:25.2%;--k:1.188">
           <h2 class="is lg b" data-at=".25">Nikah</h2>
           <img class="orn b" src="assets/family/cal/orn.webp" alt="" data-at="0">
           <p class="tb date b" data-at=".75">On Thursday, 17th December 2026</p>
@@ -124,8 +123,8 @@
       </section>
 
       <!-- 8 · Dawat-E-Valima -->
-      <section class="scene" data-clip="walima" data-time="8.5">
-        <div class="txt fit" style="--top:21%;--k:1.229">
+      <section class="scene" data-bg="walima" data-time="8.5">
+        <div class="txt fit" style="--top:21%;--k:1.328">
           <h2 class="is lg b" data-at="0">Dawat-E-Valima</h2>
           <img class="orn b" src="assets/family/cal/orn.webp" alt="" data-at="0">
           <p class="tb date b" data-at=".75">On Thursday,<br>17th December 2026</p>
@@ -138,9 +137,9 @@
       </section>
 
       <!-- 9 · Thank you (the lettering is the video's own) -->
-      <section class="scene" data-clip="thanks" data-time="0">
+      <section class="scene" data-bg="thanks" data-time="0">
         <img class="cal b" src="assets/family/cal/thankyou.webp" alt="Thank you" style="--l:26.389%;--t:23.281%;--w:45.139%" data-at="0">
-        <div class="txt fit" style="--top:40.6%;--k:1.142">
+        <div class="txt fit" style="--top:40.6%;--k:1.190">
           <p class="pf bless b" data-at=".5">Your presence, prayers<br>and blessings will add<br>joy to our celebration.</p>
           <p class="pf from b" data-at="1.1">With Best Compliments From:</p>
           <p class="tb fam b" data-at="1.1">Relatives and Friends</p>
@@ -148,6 +147,7 @@
         </div>
       </section>
 
+      <canvas class="petals" id="petals" aria-hidden="true"></canvas>
       <div class="haze" id="haze" aria-hidden="true"></div>
     </div>
 
